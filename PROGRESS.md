@@ -237,3 +237,76 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 - Member 2: The shared layout and component suite are ready for your instructor dashboard and report pages!
 
 **Ready for next phase:** YES (ready for Phase 3: Student dashboard with fake data)
+
+---
+
+## Phase 3 Report – Student Dashboard (Fake Data & Service Stubs)
+
+**Status:** DONE
+
+**What was built:**
+- Created `RoomService` (`app/Services/RoomService.php`) with stub data for 3 software testing escape rooms (`The Boundary Maze`, `Equivalence Chamber`, and `The Assertion Vault`), each with id, name, description, time limit in minutes, and concept tag. Marked with required STUB comment for Member 5.
+- Created `SessionService` (`app/Services/SessionService.php`) with student-specific stub sessions. Returns varied history per user id (e.g. Student 1 has finished & in-progress runs, Student 2 has finished & waiting runs, and Student 5 has an empty session list). Marked with required STUB comment for Member 5.
+- Created `StudentController` (`app/Http/Controllers/StudentController.php`) with `dashboard()` and `startRoom()` methods, calling only the service classes and passing data to the views.
+- Updated `routes/web.php` with role-guarded `student.dashboard` (`/student/dashboard`) and `student.start-room` (`/rooms/{id}/start`).
+- Created placeholder start-room view (`resources/views/student/start-room.blade.php`) indicating "Start room screen comes in Phase 4".
+- Built the Student Dashboard view (`resources/views/student/dashboard.blade.php`) using `<x-app-layout>` and shared components:
+  - Personalized welcome heading with student's name.
+  - 3 room cards with concept badge, time limit indicator, description, and "Start room" button.
+  - Past sessions display: desktop table and mobile stacked cards. Finished sessions show an "Open report" link to `reports.show`, while waiting/in-progress sessions do not have a report link.
+  - Cheerful empty state card when a student has no past session history.
+- Replaced the topics line on `welcome.blade.php` with neutral wording ("teach core software testing concepts").
+- Updated `README_TEAM.md` with Section 8 detailing `RoomService` and `SessionService` method contracts and handoff guidelines for Member 5.
+- Added comprehensive feature tests in `tests/Feature/StudentDashboardTest.php`.
+
+**Files created/changed:**
+- `app/Services/RoomService.php` (created)
+- `app/Services/SessionService.php` (created)
+- `app/Http/Controllers/StudentController.php` (created)
+- `resources/views/student/dashboard.blade.php` (changed)
+- `resources/views/student/start-room.blade.php` (created)
+- `resources/views/welcome.blade.php` (changed: neutral topics wording)
+- `routes/web.php` (changed: connected StudentController)
+- `tests/Feature/StudentDashboardTest.php` (created)
+- `README_TEAM.md` (changed: added Section 8)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run automated test suite: `php artisan test` (all 46 tests pass).
+2. Start dev server: `php artisan serve`.
+3. Open `http://localhost:8000/login`.
+4. **Student with Session History**:
+   - Log in as `student1@test.com` (password: `password`).
+   - Confirm welcome header: "Welcome, Student 1!".
+   - Check the 3 room cards and click "Start room" on any card -> opens `/rooms/{id}/start` with Phase 4 placeholder.
+   - Check past sessions list: verify finished sessions have an active "Open report" link, while the in-progress session has no link.
+   - Click "Open report" -> opens `/reports/101`.
+5. **Student with Empty History**:
+   - Log out, log in as `student5@test.com` (password: `password`).
+   - Verify past sessions section displays the cheerful empty state: *"No past missions yet! You have not started any VR escape room challenges yet."*
+6. **Mobile Width Verification**:
+   - Shrink browser width to mobile (< 640px).
+   - Confirm past sessions transform into clean stacked cards instead of an overflowing or broken table.
+7. **Role Protection**:
+   - Log out, log in as `instructor@test.com` (password: `password`).
+   - Try navigating to `http://localhost:8000/student/dashboard`. Confirm HTTP 403 Forbidden.
+
+**Result of my own testing:**
+- Automated test suite passed: **46 passed (167 assertions)**, 0 failures.
+- RoomService provides 3 well-structured fake testing rooms.
+- SessionService returns student-isolated data and empty history for Student 5.
+- Finished sessions link to `reports.show`, unfinished sessions do not.
+- Desktop table and mobile stacked cards render smoothly at all screen widths.
+- No new database tables were created; all fake data is strictly encapsulated in service classes.
+
+**Problems found:** none
+
+**Decisions I made that you should know about:**
+- Implemented responsive duel-view for past sessions (table on `md:block`, stacked cards on `block md:hidden`) to guarantee mobile layout integrity without breaking or horizontal scrolling.
+- In `SessionService`, used both email matching (`student5@test.com`) and user ID modulo fallback (`$user->id % 5 === 0`) so both seeded accounts and factory test users can consistently reproduce empty history testing.
+- Created `StudentController` to keep routing cleanly separated from closures.
+
+**Questions for the team (Member 2 / Member 5):**
+- Member 5: See Section 8 in `README_TEAM.md` for the exact return shapes expected for `RoomService` and `SessionService`.
+
+**Ready for next phase:** YES (ready for Phase 4: Start room screen, 6-digit code, timer, and status polling)

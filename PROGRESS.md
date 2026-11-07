@@ -9,83 +9,68 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 **Status:** DONE
 
 **What was built:**
-- No feature code written. Read-only review of the project.
+- Initial project review and architecture planning.
+- Installed Laravel Breeze (Blade stack), ran default migrations, and built Vite assets.
+- Initialized Git repository on `main`, ensured `.env`, `vendor/`, and `*.sqlite` are ignored, and branched to `member1-web`.
+- Updated `.env` and `.env.example` with `SESSION_DRIVER=file`, `CACHE_STORE=file`, and `QUEUE_CONNECTION=sync`.
 
 **Files created/changed:**
-- `PROGRESS.md` (this file, created now)
-
-**How to test:**
-- N/A (no feature code yet)
+- `composer.json`, `composer.lock`
+- `.env`, `.env.example`
+- `.gitignore`
+- Breeze scaffolding files (views, controllers, routes, tests)
+- `PROGRESS.md`
 
 **Result of my own testing:**
-- Laravel version confirmed: **12.71.0**
-- PHP version confirmed: **8.2** (from `composer.json` requirement)
-- Database: **SQLite** (`DB_CONNECTION=sqlite`, file exists at `database/database.sqlite`)
-- Git: Initialized on branch `main`, **zero commits yet** (no history)
-- Breeze: **NOT yet installed** (`vendor/laravel/breeze` does not exist, no auth views, no auth routes)
-- Current routes: only `/` (welcome), `storage/`, and `up` – no auth routes at all
-- `resources/views/`: only `welcome.blade.php` – no auth views
-- Controllers: only the base `Controller.php` stub
-- Models: only `User.php` (no `role` column yet)
-- Migrations: standard 3 Laravel files (users, cache, jobs) – no `role` column
-- Seeders: default stub only (creates one test user with no role)
-- Tests: only `tests/Feature/ExampleTest.php`
+- Breeze auth scaffolding confirmed working (25 tests passed).
 
 **Problems found:**
+- Breeze was not initially installed. Resolved via Option A (Breeze Blade stack installed).
 
-> ⚠️ **BREEZE IS NOT INSTALLED**
-> The brief says "Laravel Breeze (Blade + Tailwind + Alpine) is installed and login/logout pages already work." This is **not true** in the current project. Breeze is absent from both `composer.json` and `vendor/`. There are no auth routes, no auth views, and no auth controllers.
->
-> **This must be resolved before Phase 1 can start.**
-> See Problem Report below.
+**Ready for next phase:** YES
+
+---
+
+## Phase 1 Report – Roles and Seed Data
+
+**Status:** DONE
+
+**What was built:**
+- Added portable `role` column (`string`, default `'student'`) to the `users` table via migration.
+- Added helper methods `isInstructor(): bool` and `isStudent(): bool` to the `User` model, and added `'role'` to `$fillable`.
+- Updated `DatabaseSeeder` to seed 1 instructor (`instructor@test.com`) and 5 students (`student1@test.com` through `student5@test.com`), all with password `'password'`, `role` assigned, and `email_verified_at` timestamped.
+- Added automated unit test (`tests/Unit/UserTest.php`) and feature test (`tests/Feature/SeedDataTest.php`).
+
+**Files created/changed:**
+- `database/migrations/2026_11_07_181119_add_role_to_users_table.php` (created)
+- `app/Models/User.php` (changed)
+- `database/seeders/DatabaseSeeder.php` (changed)
+- `tests/Unit/UserTest.php` (created)
+- `tests/Feature/SeedDataTest.php` (created)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run `php artisan test --filter=SeedDataTest` (or full suite `php artisan test`).
+2. Run `php artisan db:seed` to ensure local database has the accounts.
+3. Start the dev server: `php artisan serve`.
+4. Open `http://localhost:8000/login`.
+5. Test instructor account: email `instructor@test.com`, password `password`. Verify login succeeds.
+6. Log out, then test student accounts: email `student1@test.com` through `student5@test.com`, password `password`. Verify login succeeds for each.
+
+**Result of my own testing:**
+- Automated test suite passed: **29 passed (114 assertions)**, 0 failures.
+- All 6 accounts exist in SQLite test database and have verified emails.
+- `isInstructor()` returns `true` for instructor and `false` for student; `isStudent()` returns `true` for student and `false` for instructor.
+- All 6 accounts authenticate successfully through the `/login` endpoint with password `password`.
+
+**Problems found:** none
 
 **Decisions I made that you should know about:**
-- Did not run `php artisan serve` (not needed for read-only review; the app can be verified manually)
-- Did not write any feature code
+- Initialized git repository locally with default branch `main`, verified `.gitignore` excludes `.env`, `/vendor`, and `*.sqlite`, made the initial commit on `main`, and checked out `member1-web`.
+- Set `SESSION_DRIVER=file`, `CACHE_STORE=file`, and `QUEUE_CONNECTION=sync` in both `.env` and `.env.example` as instructed.
+- Used portable migration syntax (`$table->string('role')->default('student')->after('email')`) for clean MySQL/SQLite cross-compatibility.
+- Used `User::updateOrCreate` in `DatabaseSeeder` so seeds are idempotent and safe to re-run.
 
-**Questions for the team:**
-- Member 5: Confirm status names (`waiting`, `in_progress`, `finished`) before Phase 4
-- Member 5: Phase 4 will need a session-status endpoint. Expected JSON shape (to be confirmed):
-  ```json
-  { "session_id": 1, "status": "in_progress" }
-  ```
-- Whole team: Which database for production — SQLite or MySQL? (using SQLite for local dev for now)
+**Questions for the team (Member 2 / Member 5):** none
 
-**Ready for next phase:** NO — awaiting decision on Breeze install (see Problem Report)
-
----
-
-## Problem Report – Breeze Not Installed
-
-**Where:** Phase 0, project review
-
-**What happened:**
-`vendor/laravel/breeze` does not exist. `composer.json` has no entry for `laravel/breeze`. The only views file is `welcome.blade.php`. `php artisan route:list` shows 4 routes with no auth routes.
-
-**Likely cause:**
-Breeze was never installed in this project. The project was created with the default Laravel skeleton only.
-
-**Options to fix:**
-
-| Option | Command | Pros | Cons |
-|--------|---------|------|------|
-| A – Install Breeze now (Blade stack) | `composer require laravel/breeze --dev` then `php artisan breeze:install blade` | Gets login/register/layout scaffolding instantly; this is what the brief expects | Adds vendor files; we then immediately remove the register route in Phase 2 |
-| B – Build auth manually | Write login controller, form, middleware by hand | No package dependency | Much more work; reinvents what Breeze gives for free; deviates from the brief |
-| C – Use a different starter kit | e.g., Jetstream | More features | Overkill; brief explicitly says Breeze |
-
-**Recommended fix:** **Option A** — install Breeze with the Blade stack. This is what the brief specifies, it is the standard approach, and it sets up the layout and auth pages that Member 2 will build on.
-
-Command sequence (ready to run on your approval):
-```bash
-composer require laravel/breeze --dev
-php artisan breeze:install blade
-php artisan migrate
-npm install
-npm run build
-```
-
-**Impact on the team:**
-- Member 2 is waiting for the shared layout (Phase 2). We cannot proceed without auth scaffolding.
-- No impact on Member 5 (database/API side).
-
----
+**Ready for next phase:** YES

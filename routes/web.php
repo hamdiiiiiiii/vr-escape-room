@@ -8,8 +8,24 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    if (request()->user()->isInstructor()) {
+        return redirect()->route('instructor.dashboard');
+    }
+
+    return redirect()->route('student.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::get('/student/dashboard', function () {
+        return view('student.dashboard');
+    })->name('student.dashboard');
+});
+
+Route::middleware(['auth', 'role:instructor'])->group(function () {
+    Route::get('/instructor/dashboard', function () {
+        return view('instructor.dashboard');
+    })->name('instructor.dashboard');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

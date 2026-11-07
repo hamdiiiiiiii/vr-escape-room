@@ -17,29 +17,66 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_users_can_authenticate_using_the_login_screen(): void
+    public function test_student_is_redirected_to_student_dashboard_after_login(): void
     {
-        $user = User::factory()->create();
+        $student = User::factory()->create([
+            'role' => 'student',
+        ]);
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'email' => $student->email,
             'password' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('student.dashboard', absolute: false));
     }
 
-    public function test_users_can_not_authenticate_with_invalid_password(): void
+    public function test_instructor_is_redirected_to_instructor_dashboard_after_login(): void
+    {
+        $instructor = User::factory()->create([
+            'role' => 'instructor',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $instructor->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('instructor.dashboard', absolute: false));
+    }
+
+    public function test_dashboard_route_redirects_to_student_dashboard_for_student(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+
+        $response = $this->actingAs($student)->get('/dashboard');
+
+        $response->assertRedirect(route('student.dashboard'));
+    }
+
+    public function test_dashboard_route_redirects_to_instructor_dashboard_for_instructor(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+
+        $response = $this->actingAs($instructor)->get('/dashboard');
+
+        $response->assertRedirect(route('instructor.dashboard'));
+    }
+
+    public function test_users_can_not_authenticate_with_invalid_password_and_error_is_returned(): void
     {
         $user = User::factory()->create();
 
-        $this->post('/login', [
+        $response = $this->from('/login')->post('/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
 
         $this->assertGuest();
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors(['email' => trans('auth.failed')]);
     }
 
     public function test_users_can_logout(): void

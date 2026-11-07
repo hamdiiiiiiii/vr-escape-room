@@ -61,5 +61,16 @@ class RoleGuardTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_authenticated_user_can_access_report_placeholder(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+
+        $response = $this->actingAs($student)->get(route('reports.show', ['id' => 101]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Report Details (#101)');
+        $response->assertSee('Member 2 fills this in');
+    }
 }
 

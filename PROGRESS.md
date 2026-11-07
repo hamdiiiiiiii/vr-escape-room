@@ -74,3 +74,79 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 **Questions for the team (Member 2 / Member 5):** none
 
 **Ready for next phase:** YES
+
+---
+
+## Phase 2 Part A Report – Login Flow, Role Guard, and Registration Removal
+
+**Status:** DONE
+
+**What was built:**
+- Product name updated to **"BugHunt VR"** (`APP_NAME="BugHunt VR"`) in `.env` and `.env.example`.
+- Configured role-based login redirect: students land on `student.dashboard`, instructors land on `instructor.dashboard`.
+- Kept `/dashboard` route (named `dashboard`) redirecting to the user's role dashboard to maintain compatibility with Breeze and existing links.
+- Created `EnsureRole` middleware (`app/Http/Middleware/EnsureRole.php`) and registered the `role` alias in `bootstrap/app.php`. Enforces HTTP 403 Forbidden on unauthorized role access.
+- Removed public registration: removed GET/POST `/register` routes from `routes/auth.php` and removed the registration link from `resources/views/welcome.blade.php`.
+- Verified wrong credentials behavior: confirmed invalid password returns a validation error on `email` (`trans('auth.failed')`) and redirects back.
+- Created placeholder dashboard views for student and instructor (`resources/views/student/dashboard.blade.php` and `resources/views/instructor/dashboard.blade.php`).
+- Updated registration tests to verify that `/register` returns 404, added tests for login redirects per role, wrong password validation error, and added comprehensive role guard tests.
+
+**Files created/changed:**
+- `.env` and `.env.example` (changed: `APP_NAME="BugHunt VR"`)
+- `app/Http/Middleware/EnsureRole.php` (created)
+- `bootstrap/app.php` (changed: registered `role` middleware alias)
+- `routes/auth.php` (changed: removed registration routes)
+- `routes/web.php` (changed: role redirect on `/dashboard`, `student.dashboard`, `instructor.dashboard`)
+- `app/Http/Controllers/Auth/AuthenticatedSessionController.php` (changed: redirect by role)
+- `resources/views/welcome.blade.php` (changed: removed register link)
+- `resources/views/student/dashboard.blade.php` (created)
+- `resources/views/instructor/dashboard.blade.php` (created)
+- `tests/Feature/Auth/AuthenticationTest.php` (changed: added role redirect and wrong password error tests)
+- `tests/Feature/Auth/RegistrationTest.php` (changed: asserts 404 for registration)
+- `tests/Feature/RoleGuardTest.php` (created: tests 403 role enforcement)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run automated tests: `php artisan test` (all 38 tests should pass).
+2. Start dev server: `php artisan serve`.
+3. Test wrong password:
+   - Go to `http://localhost:8000/login`.
+   - Submit `student1@test.com` with `wrong-password`.
+   - Confirm page reloads with error message: *"These credentials do not match our records."*
+4. Test student login:
+   - Submit `student1@test.com` with `password`.
+   - Confirm redirect to `http://localhost:8000/student/dashboard` with "Student Dashboard".
+5. Test student role guard:
+   - While logged in as student, navigate to `http://localhost:8000/instructor/dashboard`.
+   - Confirm HTTP 403 Forbidden is returned.
+6. Test instructor login:
+   - Log out, then log in as `instructor@test.com` with `password`.
+   - Confirm redirect to `http://localhost:8000/instructor/dashboard` with "Instructor Dashboard".
+7. Test instructor role guard:
+   - While logged in as instructor, navigate to `http://localhost:8000/student/dashboard`.
+   - Confirm HTTP 403 Forbidden is returned.
+8. Test registration removal:
+   - Navigate to `http://localhost:8000/register`.
+   - Confirm HTTP 404 Not Found is returned.
+
+**Result of my own testing:**
+- Automated test suite: **38 passed (132 assertions)**, 0 failures.
+- Student login redirects to `student.dashboard`.
+- Instructor login redirects to `instructor.dashboard`.
+- `/dashboard` redirects students to `student.dashboard` and instructors to `instructor.dashboard`.
+- Student accessing instructor routes receives 403.
+- Instructor accessing student routes receives 403.
+- Guest accessing protected routes redirects to `/login`.
+- Submitting invalid password leaves user as guest and returns validation error on `email`.
+- Registration routes return 404.
+
+**Problems found:** none
+
+**Decisions I made that you should know about:**
+- Updated `AuthenticatedSessionController@store` to redirect directly to the role dashboard via `intended()`, while keeping `/dashboard` as a smart router so existing Breeze redirects continue to work.
+- Configured `EnsureRole` to support variadic parameters (e.g. `role:student` or `role:admin,instructor`) and return `403` via `abort(Response::HTTP_FORBIDDEN)`.
+- Kept `RegistrationTest.php` active by converting tests to assert 404 Not Found, confirming registration routes are fully disabled without deleting test files.
+
+**Questions for the team (Member 2 / Member 5):** none
+
+**Ready for next phase:** YES (ready for Phase 2 Part B: shared layout, navigation, and README_TEAM.md)

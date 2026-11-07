@@ -64,3 +64,4 @@ class SeedDataTest extends TestCase
         }
     }
 }
+

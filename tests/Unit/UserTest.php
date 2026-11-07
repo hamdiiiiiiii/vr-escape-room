@@ -21,3 +21,4 @@ class UserTest extends TestCase
         $this->assertFalse($user->isInstructor());
     }
 }
+

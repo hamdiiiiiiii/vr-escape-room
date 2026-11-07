@@ -150,3 +150,90 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 **Questions for the team (Member 2 / Member 5):** none
 
 **Ready for next phase:** YES (ready for Phase 2 Part B: shared layout, navigation, and README_TEAM.md)
+
+---
+
+## Phase 2 Part B Report – Shared Layout, Navigation, Design Components, and Team README
+
+**Status:** DONE
+
+**What was built:**
+- Built reusable Blade design components:
+  - `<x-primary-button>`: Primary indigo (`#4F46E5` / `bg-indigo-600`), rounded-xl, soft shadow.
+  - `<x-secondary-button>`: Clean white card button with border-gray-300, rounded-xl, hover states.
+  - `<x-card>`: White card with rounded corners (`rounded-2xl`), soft shadow (`shadow-sm`), and border.
+  - `<x-page-heading>`: Clean typography with title, subtitle, and responsive actions slot.
+  - `<x-status-badge>`: Standardized status pills (waiting = yellow, in progress = blue with pulse indicator, finished = green).
+  - `<x-application-logo>`: Playful VR headset and bug icon with "BugHunt VR" branding.
+- Shared top navigation bar:
+  - Desktop: "BugHunt VR" logo on the left, role dashboard link in the middle, user name + role pill + quick Log out button on the right.
+  - Mobile (phone width): Collapses into an Alpine.js hamburger button with slide-down drawer showing user info, role badge, navigation links, and full-width Log out button.
+- Shared layouts (`app.blade.php`, `guest.blade.php`, and `welcome.blade.php`):
+  - Consistent light gray background (`bg-slate-50`), friendly rounded style for kids' learning, readable typography, and no dark mode.
+- Student & Instructor placeholder pages:
+  - Both updated using `<x-app-layout>`, `<x-page-heading>`, `<x-card>`, and `<x-status-badge>`.
+  - Display "Member 2 fills this in" placeholder notice, so pages look complete, clean, and structured.
+- Placeholder report page:
+  - Created `resources/views/reports/show.blade.php` and registered `reports.show` route (`/reports/{id}`) in `routes/web.php` with authentication.
+- Team documentation (`README_TEAM.md`):
+  - Setup guide (< 15 min clone to run).
+  - Test accounts table.
+  - "How to add a new page" guide for Member 2.
+  - Complete route map and component usage reference.
+- Compiled Vite production assets (`npm run build`).
+
+**Files created/changed:**
+- `resources/views/components/primary-button.blade.php` (changed)
+- `resources/views/components/secondary-button.blade.php` (changed)
+- `resources/views/components/card.blade.php` (created)
+- `resources/views/components/page-heading.blade.php` (created)
+- `resources/views/components/status-badge.blade.php` (created)
+- `resources/views/components/application-logo.blade.php` (changed)
+- `resources/views/components/text-input.blade.php` (changed)
+- `resources/views/layouts/app.blade.php` (changed)
+- `resources/views/layouts/guest.blade.php` (changed)
+- `resources/views/layouts/navigation.blade.php` (changed)
+- `resources/views/student/dashboard.blade.php` (changed)
+- `resources/views/instructor/dashboard.blade.php` (changed)
+- `resources/views/reports/show.blade.php` (created)
+- `resources/views/welcome.blade.php` (changed)
+- `routes/web.php` (changed: added `reports.show` route)
+- `tests/Feature/RoleGuardTest.php` (changed: added report route test)
+- `README_TEAM.md` (created)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run automated test suite: `php artisan test` (all 39 tests pass).
+2. Start dev server: `php artisan serve`.
+3. Open `http://localhost:8000/login` in a browser.
+4. Test Student View:
+   - Log in as `student1@test.com` (password: `password`).
+   - Check navigation: "BugHunt VR" logo, "Student Dashboard" link, user name pill with "STUDENT", and "Log Out" button.
+   - Verify student dashboard displays page heading, status badges (waiting, in progress, finished), and card with "Member 2 fills this in".
+   - Test phone view: Resize browser to < 640px width (e.g. 375px mobile emulator). Confirm top nav collapses into hamburger button, tap hamburger to open drawer, verify navigation and mobile logout button work.
+5. Test Instructor View:
+   - Log out, log in as `instructor@test.com` (password: `password`).
+   - Check navigation shows "Instructor Dashboard" and "INSTRUCTOR" pill.
+   - Verify instructor dashboard displays metrics and placeholder card.
+6. Test Report Placeholder:
+   - Navigate to `http://localhost:8000/reports/1`.
+   - Verify report page displays session #1, finished badge, and "Member 2 fills this in".
+
+**Result of my own testing:**
+- Automated test suite passed: **39 passed (135 assertions)**, 0 failures.
+- Vite build completed cleanly in 3.06s (`npm run build`).
+- Student, Instructor, and Report pages render with shared layout, primary indigo accent, rounded-2xl cards, and clear spacing.
+- Mobile drawer toggles cleanly using Alpine.js at phone widths without layout overflow.
+- No dark mode styling conflicts.
+
+**Problems found:** none
+
+**Decisions I made that you should know about:**
+- Created dedicated `<x-card>`, `<x-page-heading>`, and `<x-status-badge>` components to make it effortless for Member 2 to build consistent pages.
+- Status badge automatically maps aliases: `waiting` (yellow), `in_progress` / `in progress` (blue + pulse), and `finished` / `completed` (green).
+- Set up `README_TEAM.md` with explicit component examples and a 3-step guide for Member 2 to add new pages.
+
+**Questions for the team (Member 2 / Member 5):**
+- Member 2: The shared layout and component suite are ready for your instructor dashboard and report pages!
+
+**Ready for next phase:** YES (ready for Phase 3: Student dashboard with fake data)

@@ -188,3 +188,4 @@ php artisan test
 ```
 
 Tests run on an in-memory SQLite database automatically (`phpunit.xml`). All 38+ tests should pass.
+

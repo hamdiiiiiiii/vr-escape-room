@@ -28,3 +28,4 @@
     <span class="w-1.5 h-1.5 rounded-full {{ $dotClasses }}"></span>
     {{ $label }}
 </span>
+

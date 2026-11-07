@@ -187,5 +187,60 @@ Automatically formats colors and pulse indicators:
 php artisan test
 ```
 
-Tests run on an in-memory SQLite database automatically (`phpunit.xml`). All 38+ tests should pass.
+Tests run on an in-memory SQLite database automatically (`phpunit.xml`). All 46+ tests should pass.
+
+---
+
+## 8. Services & Backend Handoff (For Member 5)
+
+To keep the web frontend decoupled from database table development, all room and session data is isolated behind two stub service classes in `app/Services`:
+
+```
+app/Services/
+  ├── RoomService.php     # Provides rooms and room lookup
+  └── SessionService.php  # Provides student session history and session creation
+```
+
+### 1. `RoomService`
+- **Method:** `getRooms(): array`
+  Returns an array of available escape rooms.
+  ```php
+  [
+      [
+          'id' => 1,
+          'name' => 'The Boundary Maze',
+          'description' => '...',
+          'time_limit_minutes' => 15,
+          'concept_tag' => 'Boundary Testing',
+      ],
+      // ...
+  ]
+  ```
+- **Method:** `findRoom(int|string $id): ?array`
+  Finds a single room by its identifier.
+
+### 2. `SessionService`
+- **Method:** `getPastSessions(User $user): array`
+  Returns the past sessions for a given user.
+  ```php
+  [
+      [
+          'id' => 101,
+          'room_id' => 1,
+          'room_name' => 'The Boundary Maze',
+          'date' => 'Nov 05, 2026',
+          'status' => 'finished',    // 'waiting' | 'in_progress' | 'finished'
+          'score' => 92,             // integer or null
+      ],
+      // ...
+  ]
+  ```
+
+### How Member 5 Will Replace Them
+When the real `rooms`, `sessions`, and `reports` database tables or external API are ready:
+1. **DO NOT** edit the Controllers or Blade views.
+2. Edit only `app/Services/RoomService.php` and `app/Services/SessionService.php`.
+3. Replace the stub arrays inside each method with real Eloquent queries (e.g. `Room::all()`, `Session::where('user_id', $user->id)->get()`) or API HTTP calls (`Http::get(...)`).
+4. Ensure the returned array keys match the format documented above.
+
 

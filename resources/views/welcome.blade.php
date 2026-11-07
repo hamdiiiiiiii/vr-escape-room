@@ -51,7 +51,7 @@
             </h1>
 
             <p class="text-base sm:text-lg text-gray-600 mt-4 max-w-2xl">
-                Step into an interactive 3D escape room designed to teach core testing concepts: Boundary Values, Equivalence Partitioning, and Unit Test suites.
+                Step into an interactive 3D escape room designed to teach core software testing concepts.
             </p>
 
             <div class="mt-8 flex flex-col sm:flex-row items-center gap-4">

@@ -1,70 +1,159 @@
 <x-app-layout>
+    <!-- Welcome Header -->
     <x-page-heading
-        title="Student Dashboard"
-        description="Welcome to your BugHunt VR testing command center! Pick a testing mission or check your test scores below.">
-        <x-slot name="actions">
-            <x-primary-button type="button">
-                Explore Rooms
-            </x-primary-button>
-        </x-slot>
+        :title="'Welcome, ' . (Auth::user()?->name ?? 'Student') . '!'"
+        description="Pick an escape room mission to start hunting software bugs in VR, or review your test scores below.">
     </x-page-heading>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Quick stats preview card -->
-        <x-card class="border-l-4 border-l-indigo-600">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Next Mission</p>
-                    <h3 class="text-lg font-bold text-gray-900 mt-1">Boundary Testing</h3>
-                </div>
-                <x-status-badge status="waiting" />
+    <!-- Available Escape Rooms Section -->
+    <div class="mb-12">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Available Escape Rooms</h2>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Select a challenge to generate your 6-digit VR headset access code.</p>
             </div>
-            <p class="text-xs text-gray-500 mt-3">Ready to begin your VR escape run.</p>
-        </x-card>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+                {{ count($rooms) }} Rooms Available
+            </span>
+        </div>
 
-        <x-card class="border-l-4 border-l-blue-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Active Run</p>
-                    <h3 class="text-lg font-bold text-gray-900 mt-1">Room 201</h3>
-                </div>
-                <x-status-badge status="in_progress" />
-            </div>
-            <p class="text-xs text-gray-500 mt-3">Connected to headset in Lab A.</p>
-        </x-card>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @foreach ($rooms as $room)
+                <x-card class="flex flex-col justify-between border-t-4 border-t-indigo-600 hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                {{ $room['concept_tag'] }}
+                            </span>
+                            <span class="inline-flex items-center text-xs font-medium text-gray-500 gap-1">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ $room['time_limit_minutes'] }} mins
+                            </span>
+                        </div>
 
-        <x-card class="border-l-4 border-l-emerald-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Latest Score</p>
-                    <h3 class="text-lg font-bold text-gray-900 mt-1">92 / 100</h3>
-                </div>
-                <x-status-badge status="finished" />
-            </div>
-            <p class="text-xs text-gray-500 mt-3">Equivalence Partitioning completed.</p>
-        </x-card>
+                        <h3 class="text-lg font-bold text-gray-900 tracking-tight">{{ $room['name'] }}</h3>
+                        <p class="text-sm text-gray-600 mt-2 leading-relaxed">
+                            {{ $room['description'] }}
+                        </p>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <a href="{{ route('student.start-room', $room['id']) }}" class="block w-full">
+                            <x-primary-button type="button" class="w-full justify-center">
+                                Start Room &rarr;
+                            </x-primary-button>
+                        </a>
+                    </div>
+                </x-card>
+            @endforeach
+        </div>
     </div>
 
-    <!-- Main placeholder card -->
-    <x-card title="Student Workspace" description="Interactive escape room launcher and past session history.">
-        <div class="py-10 text-center">
-            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+    <!-- Past Sessions Section -->
+    <div>
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">My Past Sessions</h2>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Your personal testing session history and performance evaluation reports.</p>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Student Dashboard Ready</h3>
-            <p class="text-sm text-gray-500 mt-1 max-w-md mx-auto">
-                Member 2 fills this in — Room selection cards, 6-digit VR code launcher, and past test session history will be displayed here.
-            </p>
-            <div class="mt-6 flex items-center justify-center gap-3">
-                <x-primary-button type="button">
-                    Start Test Mission
-                </x-primary-button>
-                <x-secondary-button type="button">
-                    View Sample Report
-                </x-secondary-button>
-            </div>
+            @if (count($sessions) > 0)
+                <span class="text-xs text-gray-500 font-medium">
+                    Showing {{ count($sessions) }} {{ Str::plural('session', count($sessions)) }}
+                </span>
+            @endif
         </div>
-    </x-card>
+
+        @if (count($sessions) === 0)
+            <!-- Friendly Empty State -->
+            <x-card class="py-12 text-center border-dashed border-2 border-gray-200">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-gray-900">No past missions yet!</h3>
+                <p class="text-sm text-gray-500 mt-1.5 max-w-md mx-auto">
+                    You have not started any VR escape room challenges yet. Pick a room above and click "Start room" to begin your first bug-hunting adventure!
+                </p>
+            </x-card>
+        @else
+            <!-- Desktop Table View -->
+            <div class="hidden md:block">
+                <x-card class="p-0 overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50/75">
+                            <tr>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Date</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Room</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Score</th>
+                                <th scope="col" class="px-6 py-3.5 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Report</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white">
+                            @foreach ($sessions as $session)
+                                <tr class="hover:bg-gray-50/60 transition">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                        {{ $session['date'] }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                        {{ $session['room_name'] }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <x-status-badge :status="$session['status']" />
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold {{ $session['score'] !== null ? 'text-gray-900' : 'text-gray-400' }}">
+                                        {{ $session['score'] !== null ? $session['score'] . ' / 100' : '—' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        @if ($session['status'] === 'finished')
+                                            <a href="{{ route('reports.show', $session['id']) }}" class="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1">
+                                                Open report &rarr;
+                                            </a>
+                                        @else
+                                            <span class="text-gray-400 text-xs">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </x-card>
+            </div>
+
+            <!-- Mobile Stacked Cards View -->
+            <div class="block md:hidden space-y-4">
+                @foreach ($sessions as $session)
+                    <x-card class="p-5">
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900">{{ $session['room_name'] }}</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $session['date'] }}</p>
+                            </div>
+                            <x-status-badge :status="$session['status']" />
+                        </div>
+
+                        <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-sm">
+                            <div>
+                                <span class="text-xs text-gray-500 font-medium">Score:</span>
+                                <span class="font-bold {{ $session['score'] !== null ? 'text-gray-900' : 'text-gray-400' }}">
+                                    {{ $session['score'] !== null ? $session['score'] . ' / 100' : '—' }}
+                                </span>
+                            </div>
+
+                            @if ($session['status'] === 'finished')
+                                <a href="{{ route('reports.show', $session['id']) }}" class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs inline-flex items-center gap-1">
+                                    Open report &rarr;
+                                </a>
+                            @else
+                                <span class="text-xs text-gray-400">No report</span>
+                            @endif
+                        </div>
+                    </x-card>
+                @endforeach
+            </div>
+        @endif
+    </div>
 </x-app-layout>

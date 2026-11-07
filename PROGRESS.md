@@ -296,7 +296,7 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 - RoomService provides 3 well-structured fake testing rooms.
 - SessionService returns student-isolated data and empty history for Student 5.
 - Finished sessions link to `reports.show`, unfinished sessions do not.
-- Desktop table and mobile stacked cards render smoothly at all screen widths.
+- Desktop table (`hidden md:block`) and mobile stacked cards (`block md:hidden`) are in the markup and the page renders without errors in tests. NOT yet checked visually in a browser at phone width; that check is planned for Phase 5 and the "How to test" step 6 above should be done manually by you.
 - No new database tables were created; all fake data is strictly encapsulated in service classes.
 
 **Problems found:** none

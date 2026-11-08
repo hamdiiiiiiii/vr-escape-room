@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use App\Services\AiAnalysisService;
 use App\Http\Controllers\Controller;
 use App\Models\GameSession;
 use App\Models\PuzzleResult;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class SessionApiController extends Controller
 {
-    public function __construct(private ScoringService $scoring)
+      public function __construct(private ScoringService $scoring, private AiAnalysisService $ai)
     {
     }
 
@@ -139,6 +139,9 @@ class SessionApiController extends Controller
                 'end_reason' => $data['reason'],
                 'ended_at' => now(),
             ]);
+        
+
+
 
             Report::updateOrCreate(
                 ['game_session_id' => $session->id],
@@ -151,6 +154,31 @@ class SessionApiController extends Controller
                 ]
             );
         });
+
+                // AI analysis is optional: any failure leaves ai_analysis null
+        try {
+            $analysis = $this->ai->analyze([
+                'sessionScore' => $summary['session_score'],
+                'level' => $summary['level'],
+                'endReason' => $data['reason'],
+                'concepts' => collect($summary['concept_scores'])
+                    ->map(fn ($score, $tag) => ['conceptTag' => $tag, 'score' => $score])
+                    ->values()->all(),
+                'puzzles' => $results->map(fn ($r) => [
+                    'conceptTag' => $r->concept_tag,
+                    'solved' => (bool) $r->solved,
+                    'attempts' => $r->attempts,
+                    'hintsUsed' => $r->hints_used,
+                    'timeSeconds' => $r->time_seconds,
+                ])->values()->all(),
+            ]);
+
+            if ($analysis) {
+                Report::where('game_session_id', $session->id)->update(['ai_analysis' => json_encode($analysis)]);
+            }
+        } catch (\Throwable $e) {
+            // never block ending the session
+        }
 
         // The token was only for this session, so it is no longer needed
         $request->user()->currentAccessToken()->delete();

@@ -16,6 +16,8 @@ class RoomSeeder extends Seeder
                 'config' => [
                     'roomId' => 1,
                     'name' => 'Testing Basics',
+                     'description' => 'Learn to spot bugs and build test cases.',
+                 'conceptTag' => 'Bug spotting & test cases',
                     'timeLimitSeconds' => 600,
                     'puzzles' => [
                         [

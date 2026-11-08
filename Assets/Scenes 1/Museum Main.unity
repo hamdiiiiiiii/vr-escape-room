@@ -8519,8 +8519,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoomLoader
   scenesToLoad:
-  - Museum_puzzles
-  activeSceneName: Museum Main
+  - Museum_Puzzles
+  - Museum_Decor
+  - Museum_Lighting
+  activeSceneName: Museum_Lighting
 --- !u!1 &894369180
 GameObject:
   m_ObjectHideFlags: 0

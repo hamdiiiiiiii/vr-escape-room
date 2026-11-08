@@ -7,4 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Room extends Model
 {
     protected $guarded = [];
+        protected $casts = [
+        'config' => 'array',
+    ];
 }

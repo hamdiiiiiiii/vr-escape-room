@@ -1,4 +1,4 @@
-# BugHunt VR – Team Development Guide
+# BugHunt VR â€“ Team Development Guide
 
 Welcome to the **BugHunt VR** web application (Member 1 & 2 workspace). This guide explains how to set up the project locally in under 15 minutes, log in with test accounts, and build new pages on the shared architecture.
 
@@ -197,8 +197,8 @@ To keep the web frontend decoupled from database table development, all room and
 
 ```
 app/Services/
-  ├── RoomService.php     # Provides rooms and room lookup
-  └── SessionService.php  # Provides student session history and session creation
+  â”œâ”€â”€ RoomService.php     # Provides rooms and room lookup
+  â””â”€â”€ SessionService.php  # Provides student session history and session creation
 ```
 
 ### 1. `RoomService`
@@ -370,3 +370,63 @@ The student dashboard's "My past sessions" table currently displays fixed mock d
 
 
 
+## 9. Instructor Dashboard, Performance Reports & Educational Content Pack (Member 2)
+
+Member 2 implemented the **Instructor Dashboard**, **Session Performance Reports**, and **Educational Puzzle Content Pack**:
+
+### 1. Instructor Dashboard (`/instructor/dashboard`)
+- **Controller:** `app/Http/Controllers/InstructorController.php`
+- **View:** `resources/views/instructor/dashboard.blade.php`
+- **Service:** `app/Services/InstructorService.php`
+- **Features:**
+  - Overview metric cards: Assigned Students, In Progress sessions, Waiting to Start sessions, and Completed sessions.
+  - Assigned students roster table (desktop) and stacked cards (mobile) with zero-session indicator (`Student 5`).
+  - Interactive Alpine.js session filtering: `All`, `In Progress`, `Waiting`, `Finished`.
+  - Finished sessions link directly to performance reports via `route('reports.show', $session['id'])`.
+
+### 2. Session Performance Reports (`/reports/{id}`)
+- **Controller:** `app/Http/Controllers/ReportController.php`
+- **View:** `resources/views/reports/show.blade.php`
+- **Service:** `app/Services/ReportService.php`
+- **Features:**
+  - Shared view for students (their own runs) and instructors (assigned students' runs).
+  - 4 KPI cards: Overall Score & Classification Tier, Total Time spent vs room limit, Puzzles Solved & total attempts, Solved Without Hints vs hints used.
+  - Official Score Tiers:
+    - `Needs Support`: 0â€“49
+    - `Proficient`: 50â€“79
+    - `Advanced`: 80â€“100
+  - Provisional Software Testing Concepts breakdown with alignment disclaimer.
+  - Friendly empty state for AI Tutor & Bug Analysis (*"AI Analysis Not Available Yet"*).
+  - Strict ID-based access authorization: students access only their own reports; instructors access only assigned students' reports; unauthorized attempts return `403 Forbidden`; missing or unfinished sessions return `404 Not Found`.
+
+### 3. Educational Puzzle Content Pack (`content/demo-room.json`)
+- **File:** `content/demo-room.json`
+- **Target Room:** Room 1 (*The Boundary Maze*), `roomId: 1`, `timeLimitSeconds: 900`.
+- **Content:** Exactly two educational puzzles connected via an airlock escape scenario:
+  - **Puzzle 1 (Observation â€” `puzzle-obs-01`):** Identify off-by-one boundary bug on Line 3 (`>` vs `>=`). Answer key: `buggyLineNumber: 3`.
+  - **Puzzle 2 (Assembly â€” `puzzle-asm-02`):** Assemble an automated boundary test case (`input: 10`, `expectedOutput: "UNLOCK"`).
+- **Provisional Concept:** `"Boundary Testing"` (subject to team curriculum confirmation).
+- **Format:** Adheres to handoff structure using type-specific `data` objects (`data.codeSnippet` for observation, `data.options` for assembly).
+
+### 4. Backend & Database Handoff (For Member 5)
+When the real database and API are ready:
+1. `InstructorService`:
+   - Replace in-memory arrays in `getOverview()`, `getAssignedStudents()`, and `getStudentSessions()` with Eloquent relationships (`$instructor->students()`, `$instructor->sessions()`).
+2. `ReportService`:
+   - Replace stub arrays in `getReports()` and `findReport()` with Eloquent query: `Report::with(['session', 'conceptScores'])->find($id)`.
+   - Authorization method `canAccess(User $user, array $report)` already works against verified numeric IDs (`$user->id === $report['student_id']`), allowing seamless transition to model attributes.
+3. `content/demo-room.json`:
+   - Can be seeded into `rooms` and `puzzles` tables via a Laravel Seeder (`php artisan db:seed --class=PuzzleSeeder`) or served via API (`GET /api/rooms/1/puzzles`).
+
+
+
+
+### Member 2 — Phase 5: Class Analytics
+
+The instructor dashboard now includes demo class analytics:
+average score across finished sessions and the lowest-scoring
+concept based on available report-level concept scores.
+
+Analytics exclude unrelated sessions and do not treat missing
+concept scores as zero. Data is currently stubbed and must be
+connected to Member 5's backend before production use.

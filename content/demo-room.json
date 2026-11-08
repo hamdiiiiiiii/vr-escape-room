@@ -1,0 +1,57 @@
+{
+  "roomId": 1,
+  "name": "The Boundary Maze",
+  "description": "Locate boundary conditions and off-by-one errors to unlock pressurized airlock doors.",
+  "timeLimitSeconds": 900,
+  "puzzleOrder": [
+    "puzzle-obs-01",
+    "puzzle-asm-02"
+  ],
+  "puzzles": [
+    {
+      "id": "puzzle-obs-01",
+      "type": "observation",
+      "conceptTag": "Boundary Testing",
+      "prompt": "The airlock scanner says: 'Unlock door if code is 10 or higher.' Look at the code on your VR console. Which line has the bug?",
+      "data": {
+        "codeSnippet": [
+          { "lineNumber": 1, "text": "def check_airlock_code(keypad_code):" },
+          { "lineNumber": 2, "text": "    # Access is granted if code is 10 or higher" },
+          { "lineNumber": 3, "text": "    if keypad_code > 10:" },
+          { "lineNumber": 4, "text": "        return \"UNLOCK\"" },
+          { "lineNumber": 5, "text": "    return \"LOCKED\"" }
+        ]
+      },
+      "hints": [
+        "Read the airlock rule carefully: '10 or higher'. What happens when you test code 10 against the condition in the code?",
+        "Try testing with numbers right at the edge: 9, 10, and 11. Which line of code makes the decision for code 10, and is the comparison operator strict or inclusive?"
+      ],
+      "answerKey": {
+        "buggyLineNumber": 3
+      },
+      "explanation": "Line 3 checks if keypad_code is strictly greater than 10 (> 10). Because the rule allows 10 or higher, it must use greater than or equal to (>= 10) so code 10 unlocks the door."
+    },
+    {
+      "id": "puzzle-asm-02",
+      "type": "assembly",
+      "conceptTag": "Boundary Testing",
+      "prompt": "To prove the airlock door works, assemble a boundary test case! Choose the edge-case input number and the expected output to test the boundary rule ('10 or higher unlocks').",
+      "data": {
+        "options": {
+          "inputs": [5, 10, 20],
+          "expectedOutputs": ["LOCKED", "UNLOCK"]
+        }
+      },
+      "hints": [
+        "A boundary test checks the exact edge number where the rule changes. The boundary number is 10.",
+        "Since the rule says 10 or higher unlocks the door, input 10 must have an expected output of 'UNLOCK'."
+      ],
+      "answerKey": {
+        "input": 10,
+        "expectedOutput": "UNLOCK"
+      },
+      "explanation": "Testing the boundary value (10) proves that the edge case works. For input 10, the correct expected output is 'UNLOCK'."
+    }
+  ]
+}
+

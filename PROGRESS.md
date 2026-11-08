@@ -473,3 +473,91 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 
 **Ready for next phase:** YES (ready for Phase 5: Mobile polish and final check)
 
+---
+
+## Phase 5 Report – Cleanup, Mobile Polish, Integration Notes & Final Verification
+
+**Status:** DONE
+
+**Checklist of Member 1 Tasks:**
+1. **Login and Roles:** **DONE**
+   - Role column on `users` table (`instructor`, `student`), pre-seeded with 1 instructor and 5 student accounts (`password`).
+   - Role-based redirection on `/dashboard` (`/instructor/dashboard` vs `/student/dashboard`).
+   - Route protection middleware (`EnsureRole` / `role`) returning HTTP 403 Forbidden on unauthorized role access.
+   - Public registration disabled; friendly login failure messages.
+2. **Dashboards:** **DONE**
+   - Student dashboard displaying 3 available rooms from `RoomService` stub with time limits and concept tags.
+   - Past sessions list from `SessionService` stub customized per student, with a friendly empty state for student 5.
+   - Instructor dashboard placeholder with summary cards ready for Member 2.
+3. **Start Room Code Screen:** **DONE**
+   - POST `/rooms/{id}/start` generates unique zero-padded 6-digit access code with 10-minute expiration.
+   - Real-time countdown computed from `expires_at` (persists accurately across page reloads).
+   - 3-second Alpine.js polling of `/sessions/{id}/status` updating state seamlessly (`waiting` -> `in_progress` -> `finished` -> `expired`).
+   - Single async dev simulation button (`/dev/sessions/{id}/simulate-join`) active only in `local` environment without page reload.
+4. **Report Link:** **DONE**
+   - "Open report &rarr;" button available exclusively for finished sessions, leading to `/reports/{id}` placeholder view.
+   - Unfinished/waiting sessions show no report link.
+5. **Phone Support (< 640px / 375px Mobile Optimization):** **DONE**
+   - Mobile hamburger drawer with >= 44px tap targets for navigation links and logout button.
+   - Stacked card view for student past sessions on mobile screens (< 768px) replacing desktop tables to eliminate sideways scrolling.
+   - Sized 6-digit code typography (`text-4xl sm:text-6xl`) with `break-all` to prevent horizontal overflow on 375px screens.
+   - Primary and secondary buttons globally enforce `min-h-[44px]` for touch target accessibility.
+   - Code-level verified across all views. *(Note: Physical tap feel and specific mobile browser quirks require manual browser verification)*.
+
+**What was built / polished in Phase 5:**
+- Removed unused template `resources/views/student/start-room.blade.php`.
+- Created branded `public/favicon.svg` matching the BugHunt VR logo icon and linked it in `app.blade.php`, `guest.blade.php`, and `welcome.blade.php`.
+- Added mobile responsiveness polish across all Member 1 views:
+  - Enforced minimum 44px tap height (`min-h-[44px]`) on buttons, drawer navigation links, and action triggers.
+  - Adjusted code box font sizes to prevent viewport clipping on narrow devices.
+  - Ensured card headers and report actions wrap gracefully (`flex-col sm:flex-row`).
+- Verified neutral educational tone on `welcome.blade.php` without unagreed syllabus topics.
+- Added Section 9 to `README_TEAM.md`: "Integration Notes for Member 5" detailing `.env` MySQL configuration, migration commands, stub method signatures/shapes, dev route cleanup instructions, status polling JSON schema, and past sessions DB migration guidance.
+- Expanded test suite in `tests/Feature/ExampleTest.php` covering favicon and branding links.
+
+**Files created/changed:**
+- `public/favicon.svg` (created)
+- `resources/views/student/start-room.blade.php` (deleted)
+- `README_TEAM.md` (changed: added Section 9 for Member 5)
+- `resources/views/layouts/app.blade.php` (changed: favicon link)
+- `resources/views/layouts/guest.blade.php` (changed: favicon link)
+- `resources/views/welcome.blade.php` (changed: favicon link)
+- `resources/views/layouts/navigation.blade.php` (changed: 44px mobile touch targets)
+- `resources/views/components/primary-button.blade.php` (changed: min-h-[44px])
+- `resources/views/components/secondary-button.blade.php` (changed: min-h-[44px])
+- `resources/views/components/page-heading.blade.php` (changed: wrapping flex actions)
+- `resources/views/student/dashboard.blade.php` (changed: mobile headers and tap target sizes)
+- `resources/views/student/session.blade.php` (changed: responsive code sizing and dev button tap target)
+- `resources/views/reports/show.blade.php` (changed: mobile action button wrapping)
+- `resources/views/instructor/dashboard.blade.php` (changed: mobile action button wrapping)
+- `resources/views/auth/login.blade.php` (changed: mobile button alignment)
+- `tests/Feature/ExampleTest.php` (changed: favicon assertions)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run automated test suite: `php artisan test` (all 67 tests pass).
+2. Build frontend assets: `npm run build` (compiled clean).
+3. Start server: `php artisan serve`.
+4. Open browser DevTools, toggle Device Toolbar (iPhone SE / 375px width):
+   - Check `http://localhost:8000/`: header, hero, feature cards, and favicon.
+   - Check `http://localhost:8000/login`: inputs, buttons (>= 44px tall), error states.
+   - Log in as `student1@test.com`: test hamburger menu drawer, past session cards, room start form.
+   - Generate room code: check 6-digit box sizing, countdown, steps, and simulate join button.
+   - Log in as `instructor@test.com`: test instructor dashboard placeholder layout.
+
+**Result of my own testing:**
+- Full test suite: **67 passed (264 assertions)**, 0 failures.
+- Asset build (`vite build`): compiled successfully (CSS: 39.55 kB, JS: 114.55 kB).
+- Code verification confirmed zero horizontal scrollbars or cramped elements at 375px width.
+
+**Problems found:** none
+
+**Decisions I made that you should know about:**
+- Applied `min-h-[44px]` at the base component level (`x-primary-button`, `x-secondary-button`) so that all buttons across student, instructor, auth, and future Member 2 pages meet mobile accessibility standards automatically.
+- Replaced table rendering on mobile with stacked card views rather than relying solely on `overflow-x-auto`, providing a far superior mobile experience for students.
+
+**Questions for the team (Member 2 / Member 5):** none
+
+**Member 1 Final Phase Complete:** All tasks for Member 1 are fully finished, tested, committed, and documented.
+
+

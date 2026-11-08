@@ -420,3 +420,56 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 
 **Ready for next phase:** YES (ready for Phase 4B-2: status polling every 3 seconds)
 
+---
+
+## Phase 4B-2 Report – Status Polling & Dev Button
+
+**Status:** DONE
+
+**What was built:**
+- **Status Polling (every 3 seconds):** Configured automated polling on the session screen targeting `student.session.status` (`/sessions/{id}/status`) via Alpine.js.
+  - Dynamically updates session status badge and card view when the VR game state changes.
+  - When status becomes `in_progress`: displays *"You are in the room! Play in VR"* and halts the countdown timer.
+  - When status becomes `finished`: displays the *"Open report"* button.
+  - When status becomes `expired`: stops polling and displays the *"Get new code"* button.
+- **Polling Termination & Error Resilience:**
+  - Automatically terminates polling interval once session reaches `expired` or `finished`.
+  - Catches fetch failures and displays a subtle *"Reconnecting..."* pill indicator while continuing to retry every 3 seconds without crashing.
+- **Single Async Dev Button:**
+  - Reused the single dev tool block: `"Simulate headset joined (dev only)"`.
+  - Displayed exclusively when `app()->environment('local')`.
+  - Performs an asynchronous background `fetch` `POST` with CSRF token and updates state to `in_progress` instantly without a full page reload.
+- **Automated Tests:** Added test coverage in `tests/Feature/SessionStartTest.php` for status polling configuration, interval, reconnecting state, and local-only dev button visibility.
+
+**Files created/changed:**
+- `resources/views/student/session.blade.php` (changed)
+- `tests/Feature/SessionStartTest.php` (changed: added polling and local dev button tests)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run automated test suite: `php artisan test` (all 66 tests pass).
+2. Start dev server: `php artisan serve`.
+3. Log in as `student1@test.com` (password: `password`).
+4. Click "Start room" on any room card.
+5. On the session screen:
+   - Notice the status polling in the background (network tab calls `/sessions/{id}/status` every 3 seconds).
+   - In local mode, click **"Simulate headset joined (dev only)"**.
+   - Notice the button changes to "Connecting...", then the view instantly updates to *"You are in the room! Play in VR"* and the countdown stops, **without any full page reload**.
+6. Open browser DevTools, set Network to Offline: observe the *"Reconnecting..."* badge appear next to status. Set Network back to Online: observe *"Reconnecting..."* disappears on the next 3-second cycle.
+
+**Result of my own testing:**
+- Automated test suite passed: **66 passed (257 assertions)**, 0 failures.
+- `vite build` completed cleanly without errors.
+- Async simulate join smoothly updates the DOM without full page refresh.
+- Reconnecting indicator shows on network failure and resumes on recovery.
+
+**Problems found:** none
+
+**Decisions I made that you should know about:**
+- Sent `X-Requested-With: XMLHttpRequest` and `Accept: application/json` headers on all poll and simulation fetch requests for strict API compliance.
+- Handled reconnecting with an inline badge next to the status badge to give clear feedback without obscuring user view.
+
+**Questions for the team (Member 2 / Member 5):** none
+
+**Ready for next phase:** YES (ready for Phase 5: Mobile polish and final check)
+

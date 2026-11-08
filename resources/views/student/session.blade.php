@@ -18,6 +18,11 @@
             remainingSeconds: {{ max(0, (int) \Illuminate\Support\Carbon::now()->diffInSeconds(\Illuminate\Support\Carbon::parse($session['expires_at']), false)) }},
             minutes: '{{ sprintf('%02d', max(0, floor(max(0, (int) \Illuminate\Support\Carbon::now()->diffInSeconds(\Illuminate\Support\Carbon::parse($session['expires_at']), false)) / 60))) }}',
             seconds: '{{ sprintf('%02d', max(0, floor(max(0, (int) \Illuminate\Support\Carbon::now()->diffInSeconds(\Illuminate\Support\Carbon::parse($session['expires_at']), false)) % 60))) }}',
+            timer: null,
+            pollingInterval: null,
+            isReconnecting: false,
+            isSimulating: false,
+
             init() {
                 this.updateCountdown();
                 if (this.status === 'waiting') {
@@ -25,7 +30,12 @@
                         this.updateCountdown();
                     }, 1000);
                 }
+
+                if (this.status !== 'expired' && this.status !== 'finished') {
+                    this.startPolling();
+                }
             },
+
             updateCountdown() {
                 const diff = Math.max(0, Math.floor((new Date(this.expiresAt).getTime() - Date.now()) / 1000));
                 this.remainingSeconds = diff;
@@ -38,7 +48,104 @@
                     this.status = 'expired';
                     if (this.timer) {
                         clearInterval(this.timer);
+                        this.timer = null;
                     }
+                    this.stopPolling();
+                }
+            },
+
+            startPolling() {
+                if (this.pollingInterval) return;
+                this.pollingInterval = setInterval(() => {
+                    this.pollStatus();
+                }, 3000);
+            },
+
+            stopPolling() {
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                    this.pollingInterval = null;
+                }
+            },
+
+            async pollStatus() {
+                if (this.status === 'expired' || this.status === 'finished') {
+                    this.stopPolling();
+                    return;
+                }
+
+                try {
+                    const res = await fetch('{{ route('student.session.status', $session['id']) }}', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error('HTTP error ' + res.status);
+                    }
+
+                    const data = await res.json();
+                    this.isReconnecting = false;
+
+                    if (data.status && data.status !== this.status) {
+                        this.status = data.status;
+
+                        if (this.status === 'in_progress') {
+                            if (this.timer) {
+                                clearInterval(this.timer);
+                                this.timer = null;
+                            }
+                        }
+
+                        if (this.status === 'expired' || this.status === 'finished') {
+                            this.stopPolling();
+                            if (this.timer) {
+                                clearInterval(this.timer);
+                                this.timer = null;
+                            }
+                        }
+                    }
+
+                    if (data.expires_at) {
+                        this.expiresAt = data.expires_at;
+                    }
+                } catch (error) {
+                    this.isReconnecting = true;
+                }
+            },
+
+            async simulateJoin() {
+                if (this.isSimulating) return;
+                this.isSimulating = true;
+
+                try {
+                    const res = await fetch('{{ route('dev.session.simulate-join', $session['id']) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.status) {
+                            this.status = data.status;
+                            this.isReconnecting = false;
+                            if (this.timer) {
+                                clearInterval(this.timer);
+                                this.timer = null;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Simulate join request failed', e);
+                } finally {
+                    this.isSimulating = false;
                 }
             }
         }"
@@ -52,6 +159,15 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <!-- Reconnecting indicator -->
+                <span
+                    x-show="isReconnecting"
+                    class="text-xs text-amber-700 font-semibold inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200"
+                    style="display: none;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Reconnecting...
+                </span>
+
                 <span class="text-xs text-gray-500 font-medium">Current Status:</span>
                 <template x-if="status === 'waiting'">
                     <x-status-badge status="waiting" />
@@ -190,19 +306,22 @@
             </x-card>
         </div>
 
-        <!-- Optional Dev Tool in local environment -->
+        <!-- Single Dev Tool Button (Local only, async fetch, no whole page reload) -->
         @if (app()->environment('local'))
-            <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left text-xs text-amber-900">
+            <div x-show="status === 'waiting'" class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left text-xs text-amber-900">
                 <span class="font-bold uppercase tracking-wider text-[10px] text-amber-700">Dev Tool &bull; Local Only</span>
                 <p class="mt-1 text-amber-800">
                     Simulate headset connection without a VR headset:
                 </p>
-                <form method="POST" action="{{ route('dev.session.simulate-join', $session['id']) }}" class="mt-2.5">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold transition text-xs shadow-xs">
-                        Simulate VR Join (waiting &rarr; in_progress)
+                <div class="mt-2.5">
+                    <button
+                        type="button"
+                        @click="simulateJoin()"
+                        :disabled="isSimulating"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-semibold transition text-xs shadow-xs cursor-pointer">
+                        <span x-text="isSimulating ? 'Connecting...' : 'Simulate headset joined (dev only)'">Simulate headset joined (dev only)</span>
                     </button>
-                </form>
+                </div>
             </div>
         @endif
     </div>

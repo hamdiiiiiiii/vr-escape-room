@@ -245,4 +245,35 @@ class SessionStartTest extends TestCase
             ->postJson(route('dev.session.simulate-join', $created['session_id']), ['_token' => 'test-token'])
             ->assertStatus(403);
     }
+
+    public function test_session_screen_configures_status_polling_and_reconnecting(): void
+    {
+        $student = $this->student();
+        $created = (new SessionService())->startSession($student, 1);
+
+        $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
+
+        $response->assertOk();
+        $response->assertSee(route('student.session.status', $created['session_id']));
+        $response->assertSee('3000');
+        $response->assertSee('Reconnecting...');
+        $response->assertSee('pollStatus');
+    }
+
+    public function test_session_screen_shows_dev_button_only_in_local(): void
+    {
+        $student = $this->student();
+        $created = (new SessionService())->startSession($student, 1);
+
+        // In testing environment: dev button is not present
+        $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
+        $response->assertDontSee('Simulate headset joined (dev only)');
+
+        // In local environment: dev button is present
+        $this->app['env'] = 'local';
+        $responseLocal = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
+        $responseLocal->assertSee('Simulate headset joined (dev only)');
+        $responseLocal->assertSee(route('dev.session.simulate-join', $created['session_id']));
+        $responseLocal->assertSee('@click="simulateJoin()"', false);
+    }
 }

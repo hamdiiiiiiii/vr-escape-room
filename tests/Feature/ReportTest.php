@@ -210,5 +210,30 @@ class ReportTest extends TestCase
         $response->assertSee('AI Analysis Not Available Yet');
         $response->assertSee('Automated code-level bug hunting recommendations and AI tutor analysis will be available in an upcoming update');
     }
+
+    public function test_report_renders_responsive_layout_and_adaptive_back_links(): void
+    {
+        $student1 = User::factory()->create([
+            'email' => 'student1@test.com',
+            'role' => 'student',
+        ]);
+
+        $instructor = User::factory()->create([
+            'email' => 'instructor@test.com',
+            'role' => 'instructor',
+        ]);
+
+        // Student sees back to student dashboard link
+        $studentResponse = $this->actingAs($student1)->get(route('reports.show', 101));
+        $studentResponse->assertStatus(200);
+        $studentResponse->assertSee(route('student.dashboard'));
+        $studentResponse->assertSee('Back to Student Dashboard');
+
+        // Instructor sees back to instructor dashboard link
+        $instructorResponse = $this->actingAs($instructor)->get(route('reports.show', 101));
+        $instructorResponse->assertStatus(200);
+        $instructorResponse->assertSee(route('instructor.dashboard'));
+        $instructorResponse->assertSee('Back to Instructor Dashboard');
+    }
 }
 

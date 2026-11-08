@@ -355,3 +355,153 @@ Executed full test suite (`php artisan test`):
 2. **API Endpoint:** Will Member 5 create a dedicated read-only endpoint (e.g. `GET /api/rooms/1/puzzles`) to serve this JSON to Unity and web launchers?
 3. **Curriculum Finalization:** Is the provisional concept tag `"Boundary Testing"` confirmed for Room 1, or will sub-topics (e.g. `Off-by-One Detection`) be formally partitioned?
 
+
+---
+
+## Phase 4A Report – Final Polish, Testing, and Integration Preparation
+
+**Status:** ✅ DONE  
+**Branch:** `abdelrahman` (local only — not pushed)  
+**Baseline entering Phase 4A:** 76 passed (385 assertions)  
+**Result after Phase 4A:** **78 passed (399 assertions), 0 failures**
+
+---
+
+### 1. What Was Built
+
+#### Task 1 — Mobile Responsiveness
+- Reviewed `instructor/dashboard.blade.php` (316 lines) and `reports/show.blade.php` (145 lines) at the 375 px breakpoint.
+- **Fix — `reports/show.blade.php` (Student row in Session Details card):** Changed `flex items-center justify-between` to `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2`; value span now uses `break-words text-left sm:text-right`. Prevents long email+name strings from overflowing at 375 px.
+- **Fix — `instructor/dashboard.blade.php` (student card bottom row, line 162):** Changed `flex items-center justify-between` to `flex flex-wrap items-center justify-between gap-2`. Prevents "In Progress" badge and "View Sessions" button from cramping on narrow screens.
+- Existing dual-view pattern (`hidden md:block` / `block md:hidden`) confirmed correct on both pages — no additional changes required.
+
+#### Tasks 2 & 3 — Filter States and Edge Cases (Verification)
+- All four session-status filter buttons (All (7), In Progress (1), Waiting (2), Finished (4)) verified in HTML and covered by `InstructorDashboardTest`.
+- Empty states, missing reports (404), unfinished sessions (403), unauthorized access (403), and unavailable AI analysis verified through the existing `ReportTest` and `InstructorDashboardTest` suites.
+
+#### Task 4 — Service Consistency Verification
+- Confirmed `InstructorService` and `ReportService` share identical student IDs (`resolveStudentId()` email-based lookup), session IDs (101–401), room names, scores, and session statuses.
+- Seeded user IDs verified against `DatabaseSeeder`: ID 1 = Instructor, ID 2–6 = Students 1–5.
+
+#### Task 5 — Content Pack Validation
+- `ContentPackTest` (11 tests) confirmed still passing against `content/demo-room.json`.
+
+#### Task 6 — Stub Replacement Catalogue (see Section 4 below)
+
+#### Task 7 — Integration Notes for Members 4 and 5 (see Section 5 below)
+
+#### Task 8 — README_TEAM.md Section 9
+- Appended **Section 9 — Member 2: Instructor Dashboard, Reports & Content Pack** after the existing Section 8 block.
+- Covers: Instructor Dashboard, Session Performance Reports, Educational Puzzle Content Pack, and Backend & Database Handoff guidance.
+- No existing sections overwritten.
+
+#### Tasks 9 — New Automated Tests
+- **`InstructorDashboardTest`:** Added `test_instructor_dashboard_renders_responsive_views_and_filter_controls()` — verifies `hidden md:block`, `block md:hidden`, and all 4 filter buttons with correct session counts.
+- **`ReportTest`:** Added `test_report_renders_responsive_layout_and_adaptive_back_links()` — verifies a student sees `Back to Student Dashboard` and an instructor sees `Back to Instructor Dashboard` for the same report.
+
+#### Task 10 — Full Test Suite + npm Build
+- `php artisan test`: **78 passed (399 assertions), 0 failures**
+- `npm run build`: **Clean build in 5.32 s** — 62 modules transformed, 0 errors.
+
+---
+
+### 2. Files Created and Modified (Phase 4A)
+
+| File | Status | Description |
+|---|---|---|
+| `resources/views/reports/show.blade.php` | **Modified** | Mobile layout fix: Student row uses `flex-col sm:flex-row` with `break-words`. |
+| `resources/views/instructor/dashboard.blade.php` | **Modified** | Mobile layout fix: Student card bottom row uses `flex-wrap gap-2`. |
+| `README_TEAM.md` | **Modified** | Section 9 appended — Member 2 feature documentation for teammates. |
+| `tests/Feature/InstructorDashboardTest.php` | **Modified** | 1 new test: responsive views and filter controls. |
+| `tests/Feature/ReportTest.php` | **Modified** | 1 new test: responsive back-link routing for student vs instructor. |
+| `PROGRESS_MEMBER2.md` | **Modified** | This Phase 4A report appended. |
+
+*No new controllers, services, routes, migrations, or shared components were created or modified.*
+
+---
+
+### 3. Automated Test Results
+
+Executed full test suite (`php artisan test`) after all Phase 4A changes:
+
+```text
+   PASS  Tests\Unit\ExampleTest (1 test)
+   PASS  Tests\Unit\UserTest (2 tests)
+   PASS  Tests\Feature\Auth\AuthenticationTest (7 tests)
+   PASS  Tests\Feature\Auth\EmailVerificationTest (3 tests)
+   PASS  Tests\Feature\Auth\PasswordConfirmationTest (3 tests)
+   PASS  Tests\Feature\Auth\PasswordResetTest (4 tests)
+   PASS  Tests\Feature\Auth\PasswordUpdateTest (2 tests)
+   PASS  Tests\Feature\Auth\RegistrationTest (2 tests)
+   PASS  Tests\Feature\ContentPackTest (11 tests)
+   PASS  Tests\Feature\ExampleTest (1 test)
+   PASS  Tests\Feature\InstructorDashboardTest (9 tests)
+   PASS  Tests\Feature\ProfileTest (5 tests)
+   PASS  Tests\Feature\ReportTest (12 tests)
+   PASS  Tests\Feature\RoleGuardTest (7 tests)
+   PASS  Tests\Feature\SeedDataTest (2 tests)
+   PASS  Tests\Feature\StudentDashboardTest (7 tests)
+
+  Tests:    78 passed (399 assertions)
+  Duration: 67.42s
+```
+
+- **Previous Baseline (Phase 3):** 76 passed (385 assertions)
+- **Phase 4A Result:** **78 passed (399 assertions)**
+- **Failures:** **0**
+- **Vite Build:** `npm run build` compiled cleanly in 5.32 s.
+
+---
+
+### 4. Stub Replacement Catalogue
+
+The following services and methods are **temporary stubs** that must be replaced when Member 5 delivers the backend database and API layer. Each entry lists the current stub behaviour and its intended replacement.
+
+| # | File / Method | Current Stub Behaviour | Required Replacement |
+|---|---|---|---|
+| 1 | `InstructorService::getAssignedStudents(User $instructor)` | Returns hard-coded demo student records resolved via `resolveStudentId()` email lookup. | Replace with `$instructor->students()->with('sessions')->get()` using real Eloquent relations. |
+| 2 | `InstructorService::getStudentSessions(User $instructor)` | Returns hard-coded demo session records. | Replace with Eloquent query on `Session` model filtered to instructor's assigned students. |
+| 3 | `InstructorService::getOverview(User $instructor)` | Derives totals from the stub arrays above. | Will update automatically once items 1 and 2 are replaced. |
+| 4 | `ReportService::getReports()` | Returns a hard-coded array of five demo reports. | Replace with `Report::with(['session', 'conceptScores'])->get()`. |
+| 5 | `ReportService::findReport(int $id)` | Searches the hard-coded array by session ID. | Replace with `Report::with([...])->find($id)` (returns null on miss — controller already handles 404). |
+| 6 | `ReportService::getAssignedStudentIds(User $instructor)` | Delegates to `InstructorService::getAssignedStudents()` and plucks `student_id`. | Will update automatically once InstructorService is replaced. |
+| 7 | `RoomService::getRooms()` / `findRoom()` *(Member 1's service)* | Returns hard-coded room arrays. | Replace with `Room::with('puzzles')->get()` after Member 5 creates the `rooms` table. |
+| 8 | `SessionService::getPastSessions(User $user)` *(Member 1's service)* | Returns hard-coded session arrays. | Replace with `Session::where('user_id', $user->id)->finished()->get()`. |
+| 9 | `content/demo-room.json` *(static file)* | Serves puzzle definitions as a JSON file read at test time. | Seed into the `rooms` and `puzzles` tables via `PuzzleSeeder`, then serve via `GET /api/rooms/1/puzzles`. |
+
+> **Authorization note:** `ReportService::canAccess()` performs strict ID-based ownership checks using `student_id`. These checks are correct and must be preserved when replacing stubs — only the data-fetching layer changes.
+
+---
+
+### 5. Integration Notes
+
+#### For Member 4 (Unity VR Engineer)
+
+1. **JSON Ingestion Method:** `content/demo-room.json` is currently a static Laravel file. Confirm whether Unity will bundle it into `StreamingAssets` locally, or fetch it at runtime via `GET /api/rooms/1/puzzles` once Member 5 exposes that endpoint.
+
+2. **Puzzle 1 Interaction (Observation — select the buggy line):** The JSON encodes five selectable lines (options 1–5) with `answerKey: 4`. Confirm whether the VR terminal accepts **laser reticle clicks on numbered line labels** or **physical keypad buttons 1–5** on the in-world prop.
+
+3. **Puzzle 2 Interaction (Assembly — construct a test case):** The JSON encodes four assembly blocks (`Input: -1`, `Input: 5`, `Expected Output: false`, `Expected Output: true`). Confirm whether the VR bench accepts **physical 3D snap blocks** or **floating raycast-selectable UI panels**.
+
+4. **C# Struct Alignment:** Verify that Unity's `[System.Serializable]` classes map to these camelCase JSON keys: `timeLimitSeconds`, `puzzleOrder`, `type`, `codeSnippet`, `answerKey`, `hints[].order`, `hints[].text`, `options[].id`, `options[].label`. Any key-name mismatch must be aligned before room load testing.
+
+#### For Member 5 (Backend & Database Engineer)
+
+1. **Database Schema:** Rooms and puzzles may be seeded from `content/demo-room.json` using a `PuzzleSeeder`, or stored directly as relational tables (`rooms`, `puzzles`, `hints`, `options`). Confirm the preferred approach so the JSON structure can be adapted for migrations.
+
+2. **API Endpoint Ownership:** Confirm who defines `GET /api/rooms/1/puzzles`. Member 2's `ReportController` and `InstructorController` will not need this endpoint, but Member 4's Unity client and Member 1's room launcher will.
+
+3. **Student Assignment Model:** Confirm whether instructors are linked to students via a pivot table (`instructor_student`) or a foreign key on `users` (`users.instructor_id`). This determines the exact Eloquent replacement for `InstructorService::getAssignedStudents()`.
+
+4. **Concept Tag Confirmation:** The provisional tag `"Boundary Testing"` is used in `content/demo-room.json` for Room 1. Confirm whether this is the final curriculum label or whether sub-topics (e.g. `"Off-by-One Detection"`, `"Input Validation"`) will be formally partitioned.
+
+---
+
+### 6. Remaining Work (Phase 4B — Pending Approval)
+
+The following items are explicitly **not** started and require explicit approval before implementation:
+
+- Phase 4B: Git synchronization with Member 1's merged main branch.
+- Any API contracts, database migrations, or scoring engine implementation.
+- Any Unity-facing JSON serving endpoints.
+

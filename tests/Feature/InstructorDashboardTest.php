@@ -134,5 +134,25 @@ class InstructorDashboardTest extends TestCase
         $response->assertSee('No students assigned');
         $response->assertSee('No session records');
     }
+
+    public function test_instructor_dashboard_renders_responsive_views_and_filter_controls(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
+
+        $response->assertStatus(200);
+
+        // Verify responsive dual-layout elements
+        $response->assertSee('hidden md:block');
+        $response->assertSee('block md:hidden');
+
+        // Verify Alpine.js filter buttons
+        $response->assertSee('activeFilter', false);
+        $response->assertSee('All (7)');
+        $response->assertSee('In Progress (1)');
+        $response->assertSee('Waiting (2)');
+        $response->assertSee('Finished (4)');
+    }
 }
 

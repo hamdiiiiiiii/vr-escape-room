@@ -73,9 +73,9 @@
         <!-- Session & Student Overview -->
         <x-card title="Session Details" description="Student information and challenge environment parameters.">
             <div class="space-y-4 pt-2">
-                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b border-gray-100 gap-1 sm:gap-2">
                     <span class="text-sm font-medium text-gray-500">Student</span>
-                    <span class="text-sm font-bold text-gray-900">{{ $report['student_name'] }} ({{ $report['student_email'] }})</span>
+                    <span class="text-sm font-bold text-gray-900 break-words text-left sm:text-right">{{ $report['student_name'] }} ({{ $report['student_email'] }})</span>
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-gray-100">
                     <span class="text-sm font-medium text-gray-500">Escape Room</span>

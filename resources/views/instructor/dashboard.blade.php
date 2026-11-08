@@ -159,7 +159,7 @@
                             @endif
                         </div>
 
-                        <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+                        <div class="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600">
                             <span><strong>{{ $student['session_count'] }}</strong> {{ Str::plural('session', $student['session_count']) }} recorded</span>
                             <span>Last active: <strong>{{ $student['last_active'] ?? 'Never' }}</strong></span>
                         </div>

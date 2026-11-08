@@ -15,10 +15,10 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 55daccc09a3b69647bbab145b54a3ab3
   - enabled: 1
-    path: Assets/Museum_Lighting.unity
+    path: Assets/Scenes 1/Museum_Lighting.unity
     guid: 1801136174f261d43921c9777416407f
   - enabled: 1
-    path: Assets/Museum_Decor.unity
+    path: Assets/Scenes 1/Museum_Decor.unity
     guid: b518330a0ec71304f9d39eda91b19b79
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}

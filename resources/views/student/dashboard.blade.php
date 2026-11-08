@@ -7,12 +7,12 @@
 
     <!-- Available Escape Rooms Section -->
     <div class="mb-12">
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Available Escape Rooms</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Select a challenge to generate your 6-digit VR headset access code.</p>
             </div>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+            <span class="inline-flex self-start sm:self-auto items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
                 {{ count($rooms) }} Rooms Available
             </span>
         </div>
@@ -54,13 +54,13 @@
 
     <!-- Past Sessions Section -->
     <div>
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">My Past Sessions</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Your personal testing session history and performance evaluation reports.</p>
             </div>
             @if (count($sessions) > 0)
-                <span class="text-xs text-gray-500 font-medium">
+                <span class="text-xs text-gray-500 font-medium self-start sm:self-auto">
                     Showing {{ count($sessions) }} {{ Str::plural('session', count($sessions)) }}
                 </span>
             @endif
@@ -145,11 +145,11 @@
                             </div>
 
                             @if ($session['status'] === 'finished')
-                                <a href="{{ route('reports.show', $session['id']) }}" class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs inline-flex items-center gap-1">
+                                <a href="{{ route('reports.show', $session['id']) }}" class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs inline-flex items-center min-h-[44px] py-2 px-1 gap-1">
                                     Open report &rarr;
                                 </a>
                             @else
-                                <span class="text-xs text-gray-400">No report</span>
+                                <span class="text-xs text-gray-400 min-h-[44px] inline-flex items-center">No report</span>
                             @endif
                         </div>
                     </x-card>

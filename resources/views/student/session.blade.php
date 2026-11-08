@@ -204,8 +204,8 @@
 
                 <!-- Big 6-Digit Code Box -->
                 <div class="my-6 max-w-sm mx-auto">
-                    <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-6 sm:p-8 shadow-inner text-center">
-                        <span class="font-mono text-5xl sm:text-6xl font-black tracking-widest text-indigo-600 select-all">
+                    <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 sm:p-8 shadow-inner text-center">
+                        <span class="font-mono text-4xl sm:text-6xl font-black tracking-wider sm:tracking-widest text-indigo-600 select-all block break-all">
                             {{ $session['code'] }}
                         </span>
                     </div>
@@ -318,7 +318,7 @@
                         type="button"
                         @click="simulateJoin()"
                         :disabled="isSimulating"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-semibold transition text-xs shadow-xs cursor-pointer">
+                        class="inline-flex items-center justify-center min-h-[44px] gap-1.5 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-semibold transition text-xs shadow-xs cursor-pointer">
                         <span x-text="isSimulating ? 'Connecting...' : 'Simulate headset joined (dev only)'">Simulate headset joined (dev only)</span>
                     </button>
                 </div>

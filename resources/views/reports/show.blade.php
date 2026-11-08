@@ -3,12 +3,12 @@
         title="Session Performance Report"
         description="Detailed test breakdown, code coverage, bug detection accuracy, and evaluation score.">
         <x-slot name="actions">
-            <a href="{{ route('dashboard') }}">
-                <x-secondary-button type="button">
+            <a href="{{ route('dashboard') }}" class="w-full sm:w-auto">
+                <x-secondary-button type="button" class="w-full sm:w-auto">
                     &larr; Back to Dashboard
                 </x-secondary-button>
             </a>
-            <x-primary-button type="button">
+            <x-primary-button type="button" class="w-full sm:w-auto">
                 Download PDF
             </x-primary-button>
         </x-slot>

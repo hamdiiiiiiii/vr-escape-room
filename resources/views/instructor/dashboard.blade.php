@@ -3,7 +3,7 @@
         title="Instructor Dashboard"
         description="Monitor student escape room performance, review testing analytics, and manage classroom VR sessions.">
         <x-slot name="actions">
-            <x-primary-button type="button">
+            <x-primary-button type="button" class="w-full sm:w-auto">
                 Export Gradebook
             </x-primary-button>
         </x-slot>
@@ -57,11 +57,11 @@
             <p class="text-sm text-gray-500 mt-1 max-w-lg mx-auto">
                 Member 2 fills this in — Real-time classroom monitoring, session logs, student testing mistake breakdowns, and AI feedback reports will live here.
             </p>
-            <div class="mt-6 flex items-center justify-center gap-3">
-                <x-primary-button type="button">
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <x-primary-button type="button" class="w-full sm:w-auto">
                     View Class Reports
                 </x-primary-button>
-                <x-secondary-button type="button">
+                <x-secondary-button type="button" class="w-full sm:w-auto">
                     Room Configurations
                 </x-secondary-button>
             </div>

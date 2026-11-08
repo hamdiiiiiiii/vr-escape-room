@@ -279,4 +279,94 @@ The stub keeps sessions in the **Laravel cache** (file driver), one entry per se
 2. Delete `SessionService::simulateJoin()`, `StudentController::simulateJoin()` and the `dev.session.simulate-join` route.
 3. The stub cache keys (`stub_session*`) and `getPastSessions()` fake data go away. Note: sessions created via `startSession` do **not** yet appear in the "My past sessions" list, which still shows fixed fake data.
 
+---
+
+## 9. Integration Notes for Member 5
+
+When integrating the real MySQL database schema, migrations, VR game API, and session models, follow this checklist:
+
+### 1. Database Configuration (`.env`)
+Switch from SQLite to MySQL in your `.env` file:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=vr_escape_room
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### 2. Migration & Seed Command
+To execute the migrations and populate initial users:
+
+```bash
+php artisan migrate --seed
+```
+
+### 3. Which Stubs to Replace
+Do **not** modify controllers or views directly. Replace only the internal implementation inside `app/Services/RoomService.php` and `app/Services/SessionService.php`:
+
+#### A. `RoomService` (`app/Services/RoomService.php`)
+- `getRooms(): array`
+  - **Return shape:** Array of associative arrays, each containing:
+    ```php
+    [
+        'id' => (int) 1,
+        'name' => (string) 'The Boundary Maze',
+        'description' => (string) '...',
+        'time_limit_minutes' => (int) 15,
+        'concept_tag' => (string) 'Boundary Testing',
+    ]
+    ```
+- `findRoom(int|string $id): ?array`
+  - **Return shape:** Single room array above or `null` if not found.
+
+#### B. `SessionService` (`app/Services/SessionService.php`)
+- `getPastSessions(User $user): array`
+  - **Return shape:** Array of past sessions for `$user`:
+    ```php
+    [
+        'id' => (int) 101,
+        'room_id' => (int) 1,
+        'room_name' => (string) 'The Boundary Maze',
+        'date' => (string) 'Nov 05, 2026',
+        'status' => (string) 'finished', // 'waiting' | 'in_progress' | 'finished' | 'expired'
+        'score' => (int|null) 92,        // integer (0-100) or null if not yet finished
+    ]
+    ```
+- `startSession(User $user, int $roomId): array`
+  - **Return shape:**
+    ```php
+    [
+        'session_id' => (int) 1001,
+        'code' => (string) '042913',      // 6-digit zero-padded string
+        'status' => (string) 'waiting',
+        'expires_at' => (string) '2026-11-08T02:10:00+02:00', // ISO 8601 string (+10 minutes)
+    ]
+    ```
+- `getSession(int|string $id): ?array`
+  - **Return shape:** Full session array or `null`. Must contain: `id`, `user_id`, `room_id`, `room_name`, `code`, `status`, `created_at`, `expires_at`.
+- `getStatus(int|string $id): ?array`
+  - **Return shape:** Exact status JSON payload for polling:
+    ```json
+    {
+        "session_id": 1,
+        "status": "waiting",
+        "expires_at": "2026-11-08T02:10:00+02:00"
+    }
+    ```
+    Allowed `status` values: `"waiting" | "in_progress" | "finished" | "expired"`.
+
+### 4. What to Remove When the Real API / DB is Connected
+1. **Dev route:** Remove `Route::post('/dev/sessions/{id}/simulate-join', ...)` from `routes/web.php`.
+2. **Controller method:** Remove `simulateJoin()` in `app/Http/Controllers/StudentController.php`.
+3. **Service method:** Remove `simulateJoin()` in `app/Services/SessionService.php`.
+4. **Dev UI button:** Remove the `@if (app()->environment('local')) ... @endif` block in `resources/views/student/session.blade.php`.
+5. **Stub cache code:** Remove cache storage keys (`stub_session:*`, `stub_session_ids`, `stub_session_counter`) from `SessionService.php`.
+
+### 5. Important Note on "My Past Sessions"
+The student dashboard's "My past sessions" table currently displays fixed mock data returned by `SessionService::getPastSessions()`. Sessions created dynamically via `startSession()` are stored in the temporary stub cache and are not yet linked to the past sessions list. Member 5 should query the real database `sessions` table where `user_id = $user->id` and sort by `created_at desc`.
+
+
 

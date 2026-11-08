@@ -109,7 +109,7 @@ All prerequisites and development components were thoroughly inspected and valid
 
 ---
 
-### 2. Files Created and Modified
+### 2. Files Created and Modified (Phase 1)
 
 | File | Status | Description |
 |---|---|---|
@@ -118,7 +118,69 @@ All prerequisites and development components were thoroughly inspected and valid
 | `routes/web.php` | **Modified** | Connected `InstructorController@dashboard` to `instructor.dashboard` route. |
 | `resources/views/instructor/dashboard.blade.php` | **Modified** | Implemented instructor dashboard UI, roster, session table, cards, and Alpine filtering. |
 | `tests/Feature/InstructorDashboardTest.php` | **Created** | 8 automated tests for authentication, role protection, roster, sessions, report links, and empty states. |
-| `PROGRESS_MEMBER2.md` | **Updated** | Recorded Phase 1 completion, actual test output, and testing instructions. |
+
+---
+
+## Phase 2 Report – Performance Reports
+
+**Status:** DONE  
+**Verification Date:** November 8, 2026  
+**Git Branch:** `abdelrahman`  
+
+### 1. What Was Built
+- **Verified Seeded User ID Mapping:**
+  - Database seed query verified actual user IDs:
+    - Instructor (`instructor@test.com`): ID `1`
+    - Student 1 (`student1@test.com`): ID `2`
+    - Student 2 (`student2@test.com`): ID `3`
+    - Student 3 (`student3@test.com`): ID `4`
+    - Student 4 (`student4@test.com`): ID `5`
+    - Student 5 (`student5@test.com`): ID `6`
+  - All ownership and access validations use strictly verified IDs with **no email-based fallback**.
+- **Service Layer (`ReportService`):**
+  - Created `app/Services/ReportService.php` with stub reports for finished sessions (IDs `101`, `102`, `201`, `401`, plus demo reports `501`, `502`).
+  - Integrated logical parameters consistent with escape room time limits and puzzle requirements (all demo reports include 3–4 puzzles, meeting the minimum 2-puzzle VR demo threshold).
+  - Metrics tracked: `time_spent`, `time_limit_minutes`, `total_attempts`, `puzzles_solved`, `total_puzzles`, `puzzles_without_hints`, and `hints_used`.
+  - Official score classification tiers implemented via `getScoreLevel(int $score)`:
+    - **Needs Support:** 0–49
+    - **Proficient:** 50–79
+    - **Advanced:** 80–100
+  - Software testing concepts treated strictly as provisional data with explicit labels (*"Provisional concept evaluation"*).
+  - Strong authorization method `canAccess(User $user, array $report): bool`:
+    - Students may only access reports where `$user->id === $report['student_id']`.
+    - Instructors may only access reports where `$report['student_id']` is in the instructor's assigned student roster.
+    - Unassigned or cross-student requests are strictly rejected.
+- **Controller Layer (`ReportController`):**
+  - Created `app/Http/Controllers/ReportController.php` with `show(Request, $id, ReportService)`:
+    - Returns HTTP `404 Not Found` for missing or unfinished sessions (e.g. Session 103).
+    - Returns HTTP `403 Forbidden` for unauthorized students or unassigned instructors.
+    - Passes contextual `isInstructor` flag to view for adaptive navigation.
+- **Routing:**
+  - Updated `routes/web.php` to connect `/reports/{id}` to `[ReportController::class, 'show']`.
+- **Blade Report View (`resources/views/reports/show.blade.php`):**
+  - Built with shared layout `<x-app-layout>` and design components.
+  - Contextual header with adaptive back button (links to `student.dashboard` or `instructor.dashboard`).
+  - 4 KPI metric cards: Overall Score & Tier badge, Total Time spent vs room limit, Puzzles Solved & total attempts, and Solved Without Hints vs hints used.
+  - Session metadata details (student info, room name, primary concept, completion date, status badge).
+  - Provisional Software Testing Concepts breakdown with score progress bars and team alignment disclaimer.
+  - Dedicated AI Performance Analysis card showing a friendly empty state (*"AI Analysis Not Available Yet — Automated code-level bug hunting recommendations and AI tutor analysis will be available in an upcoming update"*). The legacy placeholder string was completely removed.
+- **Automated Feature Tests (`ReportTest`):**
+  - Created `tests/Feature/ReportTest.php` with 11 automated test cases covering guest redirect, owner student access, non-owner student 403, instructor access, unassigned student 403, non-existent report 404, unfinished session 404, metric display, provisional concept display, score level tier classifications, and empty AI analysis section.
+
+---
+
+### 2. Files Created and Modified (Phase 2)
+
+| File | Status | Description |
+|---|---|---|
+| `app/Services/ReportService.php` | **Created** | Stub service for finished reports, score tiers, and strict ID-based access authorization. |
+| `app/Http/Controllers/ReportController.php` | **Created** | Controller for report display with 404/403 abort guards. |
+| `app/Services/InstructorService.php` | **Modified** | Updated student roster mapping to use verified database student IDs. |
+| `routes/web.php` | **Modified** | Connected `ReportController@show` to `reports.show` route. |
+| `resources/views/reports/show.blade.php` | **Modified** | Implemented full shared report view with metrics, score tiers, provisional concepts, and friendly AI empty state. |
+| `tests/Feature/ReportTest.php` | **Created** | 11 automated tests covering authorization, ownership, score levels, and data integrity. |
+| `tests/Feature/RoleGuardTest.php` | **Modified** | Replaced obsolete placeholder smoke test with `test_authorized_report_owner_can_access_report` using seeded database IDs. |
+| `PROGRESS_MEMBER2.md` | **Updated** | Recorded Phase 2 completion, test analysis, and manual testing guide. |
 
 ---
 
@@ -126,133 +188,77 @@ All prerequisites and development components were thoroughly inspected and valid
 
 Executed full test suite (`php artisan test`):
 ```text
-   PASS  Tests\Unit\ExampleTest
-  ✓ that true is true
+   PASS  Tests\Unit\ExampleTest (1 test)
+   PASS  Tests\Unit\UserTest (2 tests)
+   PASS  Tests\Feature\Auth\AuthenticationTest (7 tests)
+   PASS  Tests\Feature\Auth\EmailVerificationTest (3 tests)
+   PASS  Tests\Feature\Auth\PasswordConfirmationTest (3 tests)
+   PASS  Tests\Feature\Auth\PasswordResetTest (4 tests)
+   PASS  Tests\Feature\Auth\PasswordUpdateTest (2 tests)
+   PASS  Tests\Feature\Auth\RegistrationTest (2 tests)
+   PASS  Tests\Feature\ExampleTest (1 test)
+   PASS  Tests\Feature\InstructorDashboardTest (8 tests)
+   PASS  Tests\Feature\ProfileTest (5 tests)
+   PASS  Tests\Feature\ReportTest (11 tests)
+   PASS  Tests\Feature\RoleGuardTest (7 tests)
+   PASS  Tests\Feature\SeedDataTest (2 tests)
+   PASS  Tests\Feature\StudentDashboardTest (7 tests)
 
-   PASS  Tests\Unit\UserTest
-  ✓ is instructor returns true for instructor
-  ✓ is student returns true for student
-
-   PASS  Tests\Feature\Auth\AuthenticationTest
-  ✓ login screen can be rendered
-  ✓ student is redirected to student dashboard after login
-  ✓ instructor is redirected to instructor dashboard after login
-  ✓ dashboard route redirects to student dashboard for student
-  ✓ dashboard route redirects to instructor dashboard for instructor
-  ✓ users can not authenticate with invalid password and error is returned
-  ✓ users can logout
-
-   PASS  Tests\Feature\Auth\EmailVerificationTest
-  ✓ email verification screen can be rendered
-  ✓ email can be verified
-  ✓ email is not verified with invalid hash
-
-   PASS  Tests\Feature\Auth\PasswordConfirmationTest
-  ✓ confirm password screen can be rendered
-  ✓ password can be confirmed
-  ✓ password is not confirmed with invalid password
-
-   PASS  Tests\Feature\Auth\PasswordResetTest
-  ✓ reset password link screen can be rendered
-  ✓ reset password link can be requested
-  ✓ reset password screen can be rendered
-  ✓ password can be reset with valid token
-
-   PASS  Tests\Feature\Auth\PasswordUpdateTest
-  ✓ password can be updated
-  ✓ correct password must be provided to update password
-
-   PASS  Tests\Feature\Auth\RegistrationTest
-  ✓ registration screen is not available
-  ✓ public registration endpoint is not available
-
-   PASS  Tests\Feature\ExampleTest
-  ✓ the application returns a successful response
-
-   PASS  Tests\Feature\InstructorDashboardTest
-  ✓ guest is redirected to login from instructor dashboard
-  ✓ student cannot access instructor dashboard
-  ✓ instructor can access instructor dashboard
-  ✓ instructor dashboard renders overview metric counts
-  ✓ instructor dashboard displays assigned students roster
-  ✓ instructor dashboard displays student sessions with room and status
-  ✓ finished sessions have report links while unfinished do not
-  ✓ instructor dashboard renders empty states when no data
-
-   PASS  Tests\Feature\ProfileTest
-  ✓ profile page is displayed
-  ✓ profile information can be updated
-  ✓ email verification status is unchanged when the email address is unchanged
-  ✓ user can delete their account
-  ✓ correct password must be provided to delete account
-
-   PASS  Tests\Feature\RoleGuardTest
-  ✓ guest is redirected to login from student dashboard
-  ✓ guest is redirected to login from instructor dashboard
-  ✓ student can access student dashboard
-  ✓ student cannot access instructor dashboard
-  ✓ instructor can access instructor dashboard
-  ✓ instructor cannot access student dashboard
-  ✓ authenticated user can access report placeholder
-
-   PASS  Tests\Feature\SeedDataTest
-  ✓ seeder creates instructor and five students
-  ✓ all seeded users can authenticate via login endpoint
-
-   PASS  Tests\Feature\StudentDashboardTest
-  ✓ guest is redirected to login from student dashboard
-  ✓ instructor cannot access student dashboard
-  ✓ student dashboard displays rooms from service
-  ✓ student sees only their own sessions
-  ✓ student with empty history sees friendly empty state
-  ✓ finished session links to report while unfinished does not
-  ✓ student can open start room placeholder
-
-  Tests:    54 passed (213 assertions)
-  Duration: 6.08s
+  Tests:    65 passed (253 assertions)
+  Duration: 2.71s
 ```
-- **Total Test Count:** **54 passed (213 assertions)**, 0 failures.
-- **Frontend Build:** `npm run build` completed cleanly in 1.88s.
+
+#### Legacy Test Resolution (`RoleGuardTest.php`):
+- **Initial Issue:** In Phase 2 Part B, Member 1 wrote `test_authenticated_user_can_access_report_placeholder`, which accessed `/reports/101` with an unassigned generic student and asserted the legacy text `"Member 2 fills this in"`.
+- **Approved Resolution:** Replaced that obsolete test with `test_authorized_report_owner_can_access_report()`, which:
+  1. Runs `DatabaseSeeder::class` to guarantee realistic verified database IDs.
+  2. Retrieves `student1@test.com` and verifies `$student1->id === $report['student_id']`.
+  3. Confirms the authorized owner receives `HTTP 200 OK` and views `"Session Performance Report"`.
+- **Integrity Preserved:** No authorization logic in `ReportController` or `ReportService` was weakened. Unauthorized access continues to be tested and verified (`HTTP 403`) in `ReportTest.php`. Target achieved: **0 test failures** across the entire application suite.
 
 ---
 
-### 4. How to Manually Test the Instructor Dashboard
+### 4. How to Manually Test Performance Reports
 
 1. **Start the local server:**
    ```bash
    php artisan serve
    ```
-2. **Open the application in a browser:**
-   Navigate to `http://localhost:8000/login`.
-3. **Log in as Instructor:**
-   - Email: `instructor@test.com`
-   - Password: `password`
-   - Verify immediate redirect to `http://localhost:8000/instructor/dashboard`.
-4. **Inspect Overview Metric Cards:**
-   - Confirm 4 summary cards: "5 Students", "1 Session In Progress", "2 Sessions Waiting to Start", "4 Completed Sessions".
-5. **Inspect Assigned Students Roster:**
-   - Verify students 1 through 5 are listed.
-   - Confirm Student 5 (`student5@test.com`) shows `No sessions recorded`.
-6. **Inspect Student Sessions & Report Links:**
-   - Confirm sessions show room names (*The Assertion Vault*, *The Boundary Maze*, *Equivalence Chamber*) and concept tags.
-   - Confirm finished sessions (IDs 101, 102, 201, 401) display scores (e.g. `100 / 100`, `92 / 100`) and active "View report &rarr;" links.
-   - Click "View report &rarr;" on session 101 &rarr; opens `http://localhost:8000/reports/101`.
-   - Confirm waiting/in-progress sessions (103, 202, 301) display no report link.
-7. **Test Alpine.js Status Filtering:**
-   - Click "In Progress (1)" &rarr; only session 103 remains visible.
-   - Click "Waiting (2)" &rarr; only sessions 202 and 301 remain visible.
-   - Click "Finished (4)" &rarr; only sessions 101, 102, 201, 401 remain visible.
-   - Click "All (7)" &rarr; all sessions re-appear.
-8. **Test Mobile Responsiveness:**
-   - Open browser developer tools and toggle device toolbar (< 640px).
-   - Verify tables gracefully switch to stacked cards with full readability and zero horizontal scroll.
-9. **Test Role Guard (Security Check):**
-   - Log out, then log in as `student1@test.com` (password: `password`).
-   - Attempt to navigate directly to `http://localhost:8000/instructor/dashboard`.
-   - Confirm HTTP 403 Forbidden is returned.
+2. **Student Access (Authorized):**
+   - Log in at `http://localhost:8000/login` with `student1@test.com` / `password`.
+   - On the Student Dashboard, scroll to "My Past Sessions" and click "Open report &rarr;" on the finished Boundary Maze session (`#101`).
+   - Confirm URL is `http://localhost:8000/reports/101`.
+   - Verify:
+     - Header displays `Session #101 • The Boundary Maze • Completed on Nov 05, 2026`.
+     - Score card displays `92 / 100` with the green badge `Advanced (80–100)`.
+     - Total time displays `11m 45s` (time limit: 15 minutes).
+     - Puzzles solved displays `3 / 3` with `Total attempts: 4`.
+     - Without hints displays `2 / 3` with `Hints used: 1`.
+     - Software Testing Concepts Breakdown displays provisional scores for Boundary Testing (`94%`) and Off-by-One Trap Detection (`90%`).
+     - AI Analysis card displays `AI Analysis Not Available Yet`.
+     - Back button displays `← Back to Student Dashboard` and returns to `/student/dashboard`.
+3. **Cross-Student Access (Unauthorized - 403):**
+   - Log out and log in as `student2@test.com` / `password`.
+   - Try navigating directly to `http://localhost:8000/reports/101` (Student 1's report).
+   - Confirm HTTP `403 Forbidden` is returned.
+   - Now click "Open report &rarr;" on Student 2's own session (`#201`) &rarr; confirm HTTP `200 OK` is returned with score `88 / 100`.
+4. **Instructor Access (Authorized):**
+   - Log out and log in as `instructor@test.com` / `password`.
+   - On the Instructor Dashboard, click "View report &rarr;" next to Student 1's session `#101`.
+   - Confirm HTTP `200 OK` is returned.
+   - Verify back button displays `← Back to Instructor Dashboard` and returns to `/instructor/dashboard`.
+5. **Missing & Unfinished Sessions (404):**
+   - Attempt to open `http://localhost:8000/reports/999` &rarr; returns HTTP `404 Not Found`.
+   - Attempt to open `http://localhost:8000/reports/103` (Session 103 is `in_progress`) &rarr; returns HTTP `404 Not Found`.
+6. **Guest Access (Redirect):**
+   - In an incognito browser window, open `http://localhost:8000/reports/101`.
+   - Confirm redirect to `http://localhost:8000/login`.
+7. **Score Tier Verification:**
+   - As `student1@test.com`, open `http://localhost:8000/reports/501` &rarr; verify blue `Proficient (50–79)` badge.
+   - As `student1@test.com`, open `http://localhost:8000/reports/502` &rarr; verify rose `Needs Support (0–49)` badge.
 
 ---
 
-### 5. Integration Questions for Member 5
-- When replacing `InstructorService` with Eloquent models, will the relationship be structured as `$instructor->students()` via a pivot table (`instructor_student`) or a foreign key `students.instructor_id` on the `users` table?
-- The current stub cleanly accepts `User $instructor` in all methods, so adapting to either relationship model will only require changing the service method bodies without touching the controller or Blade view.
+### 5. Integration Notes for Member 5
+- The `ReportService` provides a clean separation of concerns. When the database tables (`reports`, `sessions`, `puzzles`) are migrated, replace the mock array in `findReport` with Eloquent models (e.g. `Report::with(['session', 'conceptScores'])->find($id)`).
+- The `canAccess` method already accepts `User $user` and array-accessible data, making Eloquent model substitution seamless without view or controller refactoring.

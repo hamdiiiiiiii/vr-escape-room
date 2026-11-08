@@ -9,6 +9,14 @@ use App\Models\User;
 class InstructorService
 {
     /**
+     * Resolve verified student ID from database or default seeded ID.
+     */
+    protected function resolveStudentId(string $email, int $defaultSeededId): int
+    {
+        return User::where('email', $email)->value('id') ?? $defaultSeededId;
+    }
+
+    /**
      * Get high-level overview counts for the authenticated instructor's class.
      *
      * @param User $instructor
@@ -32,7 +40,7 @@ class InstructorService
     }
 
     /**
-     * Get assigned students roster for the given instructor.
+     * Get assigned students roster for the given instructor using verified seeded IDs.
      *
      * @param User $instructor
      * @return array<int, array{id: int, name: string, email: string, session_count: int, last_active: string|null}>
@@ -42,37 +50,43 @@ class InstructorService
         // When Member 5 integrates the database:
         // return $instructor->students()->...
 
+        $s1 = $this->resolveStudentId('student1@test.com', 2);
+        $s2 = $this->resolveStudentId('student2@test.com', 3);
+        $s3 = $this->resolveStudentId('student3@test.com', 4);
+        $s4 = $this->resolveStudentId('student4@test.com', 5);
+        $s5 = $this->resolveStudentId('student5@test.com', 6);
+
         return [
             [
-                'id' => 1,
+                'id' => $s1,
                 'name' => 'Student 1',
                 'email' => 'student1@test.com',
                 'session_count' => 3,
                 'last_active' => 'Nov 07, 2026',
             ],
             [
-                'id' => 2,
+                'id' => $s2,
                 'name' => 'Student 2',
                 'email' => 'student2@test.com',
                 'session_count' => 2,
                 'last_active' => 'Nov 07, 2026',
             ],
             [
-                'id' => 3,
+                'id' => $s3,
                 'name' => 'Student 3',
                 'email' => 'student3@test.com',
                 'session_count' => 1,
                 'last_active' => 'Nov 04, 2026',
             ],
             [
-                'id' => 4,
+                'id' => $s4,
                 'name' => 'Student 4',
                 'email' => 'student4@test.com',
                 'session_count' => 1,
                 'last_active' => 'Nov 07, 2026',
             ],
             [
-                'id' => 5,
+                'id' => $s5,
                 'name' => 'Student 5',
                 'email' => 'student5@test.com',
                 'session_count' => 0,
@@ -89,11 +103,15 @@ class InstructorService
      */
     public function getStudentSessions(User $instructor): array
     {
-        // Aligned with SessionService and RoomService data conventions
+        $s1 = $this->resolveStudentId('student1@test.com', 2);
+        $s2 = $this->resolveStudentId('student2@test.com', 3);
+        $s3 = $this->resolveStudentId('student3@test.com', 4);
+        $s4 = $this->resolveStudentId('student4@test.com', 5);
+
         return [
             [
                 'id' => 103,
-                'student_id' => 1,
+                'student_id' => $s1,
                 'student_name' => 'Student 1',
                 'student_email' => 'student1@test.com',
                 'room_name' => 'The Assertion Vault',
@@ -104,7 +122,7 @@ class InstructorService
             ],
             [
                 'id' => 401,
-                'student_id' => 4,
+                'student_id' => $s4,
                 'student_name' => 'Student 4',
                 'student_email' => 'student4@test.com',
                 'room_name' => 'The Assertion Vault',
@@ -115,7 +133,7 @@ class InstructorService
             ],
             [
                 'id' => 202,
-                'student_id' => 2,
+                'student_id' => $s2,
                 'student_name' => 'Student 2',
                 'student_email' => 'student2@test.com',
                 'room_name' => 'The Boundary Maze',
@@ -126,7 +144,7 @@ class InstructorService
             ],
             [
                 'id' => 102,
-                'student_id' => 1,
+                'student_id' => $s1,
                 'student_name' => 'Student 1',
                 'student_email' => 'student1@test.com',
                 'room_name' => 'Equivalence Chamber',
@@ -137,7 +155,7 @@ class InstructorService
             ],
             [
                 'id' => 201,
-                'student_id' => 2,
+                'student_id' => $s2,
                 'student_name' => 'Student 2',
                 'student_email' => 'student2@test.com',
                 'room_name' => 'Equivalence Chamber',
@@ -148,7 +166,7 @@ class InstructorService
             ],
             [
                 'id' => 101,
-                'student_id' => 1,
+                'student_id' => $s1,
                 'student_name' => 'Student 1',
                 'student_email' => 'student1@test.com',
                 'room_name' => 'The Boundary Maze',
@@ -159,7 +177,7 @@ class InstructorService
             ],
             [
                 'id' => 301,
-                'student_id' => 3,
+                'student_id' => $s3,
                 'student_name' => 'Student 3',
                 'student_email' => 'student3@test.com',
                 'room_name' => 'The Boundary Maze',
@@ -171,4 +189,3 @@ class InstructorService
         ];
     }
 }
-

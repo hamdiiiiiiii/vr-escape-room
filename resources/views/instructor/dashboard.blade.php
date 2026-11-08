@@ -283,7 +283,7 @@
                             <div class="flex items-start justify-between gap-2 mb-3">
                                 <div>
                                     <h3 class="text-base font-bold text-gray-900">{{ $session['student_name'] }}</h3>
-                                    <p class="text-xs text-gray-500 mt-0.5">{{ $session['room_name'] }} &bull; {{ $session['date'] }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $session['room_name'] }} • {{ $session['date'] }}</p>
                                     <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700">
                                         {{ $session['concept_tag'] }}
                                     </span>

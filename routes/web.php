@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,9 +28,7 @@ Route::middleware(['auth', 'role:instructor'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/reports/{id}', function ($id) {
-        return view('reports.show', ['reportId' => $id]);
-    })->name('reports.show');
+    Route::get('/reports/{id}', [ReportController::class, 'show'])->name('reports.show');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

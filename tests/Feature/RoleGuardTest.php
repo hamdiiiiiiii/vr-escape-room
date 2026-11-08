@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\ReportService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -62,15 +64,21 @@ class RoleGuardTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_authenticated_user_can_access_report_placeholder(): void
+    public function test_authorized_report_owner_can_access_report(): void
     {
-        $student = User::factory()->create(['role' => 'student']);
+        $this->seed(DatabaseSeeder::class);
 
-        $response = $this->actingAs($student)->get(route('reports.show', ['id' => 101]));
+        $student1 = User::where('email', 'student1@test.com')->firstOrFail();
+        $reportService = app(ReportService::class);
+        $report = $reportService->findReport(101);
+
+        $this->assertNotNull($report);
+        $this->assertEquals($student1->id, $report['student_id']);
+
+        $response = $this->actingAs($student1)->get(route('reports.show', ['id' => 101]));
 
         $response->assertStatus(200);
-        $response->assertSee('Report Details (#101)');
-        $response->assertSee('Member 2 fills this in');
+        $response->assertSee('Session Performance Report');
     }
 }
 

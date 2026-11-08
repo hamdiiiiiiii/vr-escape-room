@@ -53,7 +53,7 @@
     </div>
 
     <!-- Past Sessions Section -->
-    <div>
+    <div id="past-sessions">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">My Past Sessions</h2>

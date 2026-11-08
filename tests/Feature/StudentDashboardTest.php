@@ -127,4 +127,16 @@ class StudentDashboardTest extends TestCase
 
         $response->assertSee('method="POST" action="'.route('student.start-room.create', 1).'"', false);
     }
+
+    public function test_navigation_contains_my_sessions_anchor_and_profile_link(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+
+        $response = $this->actingAs($student)->get(route('student.dashboard'));
+
+        $response->assertSee(route('student.dashboard').'#past-sessions');
+        $response->assertSee('My Sessions');
+        $response->assertSee('id="past-sessions"', false);
+        $response->assertSee(route('profile.edit'));
+    }
 }

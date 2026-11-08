@@ -61,7 +61,32 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    public function test_user_cannot_change_their_role_via_profile_update(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'student',
+        ]);
+
+        $response = $this
+            ->actingAs($student)
+            ->patch('/profile', [
+                'name' => 'Attempted Hacker',
+                'email' => 'hacker@example.com',
+                'role' => 'instructor',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $student->refresh();
+
+        $this->assertSame('student', $student->role);
+        $this->assertSame('Attempted Hacker', $student->name);
+        $this->assertSame('hacker@example.com', $student->email);
+    }
+
+    public function test_profile_destroy_route_is_disabled(): void
     {
         $user = User::factory()->create();
 
@@ -71,29 +96,23 @@ class ProfileTest extends TestCase
                 'password' => 'password',
             ]);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
+        // Route is disabled, so DELETE method is not allowed or not found
+        $this->assertTrue(in_array($response->status(), [404, 405]));
+        $this->assertNotNull($user->fresh());
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_profile_page_does_not_render_delete_account_section(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
+            ->get('/profile');
 
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
-
-        $this->assertNotNull($user->fresh());
+        $response->assertOk();
+        $response->assertDontSee('Delete Account');
+        $response->assertSee('Profile Settings');
+        $response->assertSee('Profile Information');
+        $response->assertSee('Update Password');
     }
 }

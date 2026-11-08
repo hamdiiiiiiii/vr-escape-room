@@ -21,8 +21,7 @@
             timer: null,
             pollingInterval: null,
             isReconnecting: false,
-            isSimulating: false,
-
+          
             init() {
                 this.updateCountdown();
                 if (this.status === 'waiting') {
@@ -116,38 +115,7 @@
                 }
             },
 
-            async simulateJoin() {
-                if (this.isSimulating) return;
-                this.isSimulating = true;
-
-                try {
-                    const res = await fetch('{{ route('dev.session.simulate-join', $session['id']) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.status) {
-                            this.status = data.status;
-                            this.isReconnecting = false;
-                            if (this.timer) {
-                                clearInterval(this.timer);
-                                this.timer = null;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.error('Simulate join request failed', e);
-                } finally {
-                    this.isSimulating = false;
-                }
-            }
+          
         }"
         class="max-w-3xl mx-auto space-y-6">
 
@@ -307,22 +275,5 @@
         </div>
 
         <!-- Single Dev Tool Button (Local only, async fetch, no whole page reload) -->
-        @if (app()->environment('local'))
-            <div x-show="status === 'waiting'" class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left text-xs text-amber-900">
-                <span class="font-bold uppercase tracking-wider text-[10px] text-amber-700">Dev Tool &bull; Local Only</span>
-                <p class="mt-1 text-amber-800">
-                    Simulate headset connection without a VR headset:
-                </p>
-                <div class="mt-2.5">
-                    <button
-                        type="button"
-                        @click="simulateJoin()"
-                        :disabled="isSimulating"
-                        class="inline-flex items-center justify-center min-h-[44px] gap-1.5 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-semibold transition text-xs shadow-xs cursor-pointer">
-                        <span x-text="isSimulating ? 'Connecting...' : 'Simulate headset joined (dev only)'">Simulate headset joined (dev only)</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-    </div>
+           
 </x-app-layout>

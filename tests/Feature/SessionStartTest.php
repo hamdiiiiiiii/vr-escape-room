@@ -2,22 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\Models\GameSession;
+use App\Models\Room;
 use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class SessionStartTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected Room $room;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        // The stub keeps sessions in the cache; start every test clean.
-        Cache::flush();
+        $this->room = Room::create([
+            'name' => 'Test Room',
+            'time_limit_seconds' => 600,
+            'config' => ['puzzles' => []],
+        ]);
     }
 
     private function student(): User
@@ -29,15 +35,16 @@ class SessionStartTest extends TestCase
     {
         $student = $this->student();
 
-        $response = $this->actingAs($student)->post(route('student.start-room.create', 1));
+        $response = $this->actingAs($student)->post(route('student.start-room.create', $this->room->id));
 
-        $session = (new SessionService())->getSession(1001);
+        $game = GameSession::first();
+        $session = (new SessionService())->getSession($game->id);
 
         $this->assertNotNull($session);
         $this->assertMatchesRegularExpression('/^\d{6}$/', $session['code']);
         $this->assertSame('waiting', $session['status']);
         $this->assertSame($student->id, $session['user_id']);
-        $response->assertRedirect(route('student.session.show', 1001));
+        $response->assertRedirect(route('student.session.show', $game->id));
     }
 
     public function test_start_with_unknown_room_returns_404(): void
@@ -49,12 +56,11 @@ class SessionStartTest extends TestCase
 
     public function test_code_is_zero_padded_to_six_digits(): void
     {
-        // Run many times: any short number must come back padded.
         $student = $this->student();
         $service = new SessionService();
 
         for ($i = 0; $i < 30; $i++) {
-            $result = $service->startSession($student, 1);
+            $result = $service->startSession($student, $this->room->id);
             $this->assertSame(6, strlen($result['code']));
         }
     }
@@ -66,7 +72,7 @@ class SessionStartTest extends TestCase
 
         $codes = [];
         for ($i = 0; $i < 50; $i++) {
-            $codes[] = $service->startSession($student, 1)['code'];
+            $codes[] = $service->startSession($student, $this->room->id)['code'];
         }
 
         $this->assertCount(50, array_unique($codes));
@@ -76,7 +82,7 @@ class SessionStartTest extends TestCase
     {
         $this->travelTo(now()->startOfSecond());
 
-        $result = (new SessionService())->startSession($this->student(), 1);
+        $result = (new SessionService())->startSession($this->student(), $this->room->id);
 
         $this->assertSame(
             now()->addMinutes(10)->toIso8601String(),
@@ -87,7 +93,7 @@ class SessionStartTest extends TestCase
     public function test_status_endpoint_returns_expected_json_shape(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 2);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
         $response = $this->actingAs($student)->getJson(route('student.session.status', $created['session_id']));
 
@@ -102,7 +108,7 @@ class SessionStartTest extends TestCase
     public function test_session_screen_shows_the_code(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
         $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
 
@@ -116,12 +122,9 @@ class SessionStartTest extends TestCase
     public function test_session_screen_renders_in_progress_state(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
-        // Put session in_progress
-        $session = (new SessionService())->getSession($created['session_id']);
-        $session['status'] = 'in_progress';
-        Cache::forever('stub_session:'.$created['session_id'], $session);
+        GameSession::whereKey($created['session_id'])->update(['status' => 'in_progress']);
 
         $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
 
@@ -133,12 +136,9 @@ class SessionStartTest extends TestCase
     public function test_session_screen_renders_finished_state(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
-        // Put session finished
-        $session = (new SessionService())->getSession($created['session_id']);
-        $session['status'] = 'finished';
-        Cache::forever('stub_session:'.$created['session_id'], $session);
+        GameSession::whereKey($created['session_id'])->update(['status' => 'finished']);
 
         $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
 
@@ -152,9 +152,8 @@ class SessionStartTest extends TestCase
     public function test_session_screen_renders_expired_state(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
-        // Advance time past 10 minutes
         $this->travel(11)->minutes();
 
         $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
@@ -162,7 +161,7 @@ class SessionStartTest extends TestCase
         $response->assertOk();
         $response->assertSee('This code has expired');
         $response->assertSee('Get new code');
-        $response->assertSee(route('student.start-room.create', 1));
+        $response->assertSee(route('student.start-room.create', $this->room->id));
         $response->assertSee('Expired');
     }
 
@@ -170,7 +169,7 @@ class SessionStartTest extends TestCase
     {
         $owner = $this->student();
         $other = $this->student();
-        $created = (new SessionService())->startSession($owner, 1);
+        $created = (new SessionService())->startSession($owner, $this->room->id);
 
         $this->actingAs($other)->get(route('student.session.show', $created['session_id']))->assertStatus(403);
         $this->actingAs($other)->getJson(route('student.session.status', $created['session_id']))->assertStatus(403);
@@ -183,24 +182,23 @@ class SessionStartTest extends TestCase
 
     public function test_guest_is_redirected_to_login(): void
     {
-        $this->post(route('student.start-room.create', 1))->assertRedirect(route('login'));
-        $this->get(route('student.session.show', 1001))->assertRedirect(route('login'));
-        $this->get(route('student.session.status', 1001))->assertRedirect(route('login'));
-        $this->post(route('dev.session.simulate-join', 1001))->assertRedirect(route('login'));
+        $this->post(route('student.start-room.create', $this->room->id))->assertRedirect(route('login'));
+        $this->get(route('student.session.show', 1))->assertRedirect(route('login'));
+        $this->get(route('student.session.status', 1))->assertRedirect(route('login'));
     }
 
     public function test_instructor_gets_403_on_session_routes(): void
     {
         $instructor = User::factory()->create(['role' => 'instructor']);
 
-        $this->actingAs($instructor)->post(route('student.start-room.create', 1))->assertStatus(403);
-        $this->actingAs($instructor)->get(route('student.session.status', 1001))->assertStatus(403);
+        $this->actingAs($instructor)->post(route('student.start-room.create', $this->room->id))->assertStatus(403);
+        $this->actingAs($instructor)->get(route('student.session.status', 1))->assertStatus(403);
     }
 
     public function test_waiting_session_becomes_expired_after_ten_minutes(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
         $this->travel(9)->minutes();
         $this->assertSame('waiting', (new SessionService())->getStatus($created['session_id'])['status']);
@@ -211,45 +209,13 @@ class SessionStartTest extends TestCase
         $response->assertOk()->assertJsonPath('status', 'expired');
     }
 
-    public function test_dev_simulate_join_works_only_in_local_environment(): void
-    {
-        $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
-        $url = route('dev.session.simulate-join', $created['session_id']);
-
-        // Testing environment: route is blocked.
-        $this->actingAs($student)->postJson($url)->assertStatus(404);
-        $this->assertSame('waiting', (new SessionService())->getStatus($created['session_id'])['status']);
-
-        // Local environment: status changes to in_progress.
-        // (CSRF is only skipped in the "testing" env, so send a token like a real form does.)
-        $this->app['env'] = 'local';
-        $this->actingAs($student)->withSession(['_token' => 'test-token'])
-            ->postJson($url, ['_token' => 'test-token'])
-            ->assertOk()
-            ->assertJsonPath('status', 'in_progress');
-
-        $this->actingAs($student)->getJson(route('student.session.status', $created['session_id']))
-            ->assertJsonPath('status', 'in_progress');
-    }
-
-    public function test_dev_simulate_join_respects_ownership(): void
-    {
-        $owner = $this->student();
-        $other = $this->student();
-        $created = (new SessionService())->startSession($owner, 1);
-
-        $this->app['env'] = 'local';
-
-        $this->actingAs($other)->withSession(['_token' => 'test-token'])
-            ->postJson(route('dev.session.simulate-join', $created['session_id']), ['_token' => 'test-token'])
-            ->assertStatus(403);
-    }
+    
+    
 
     public function test_session_screen_configures_status_polling_and_reconnecting(): void
     {
         $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
+        $created = (new SessionService())->startSession($student, $this->room->id);
 
         $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
 
@@ -260,20 +226,5 @@ class SessionStartTest extends TestCase
         $response->assertSee('pollStatus');
     }
 
-    public function test_session_screen_shows_dev_button_only_in_local(): void
-    {
-        $student = $this->student();
-        $created = (new SessionService())->startSession($student, 1);
 
-        // In testing environment: dev button is not present
-        $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
-        $response->assertDontSee('Simulate headset joined (dev only)');
-
-        // In local environment: dev button is present
-        $this->app['env'] = 'local';
-        $responseLocal = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
-        $responseLocal->assertSee('Simulate headset joined (dev only)');
-        $responseLocal->assertSee(route('dev.session.simulate-join', $created['session_id']));
-        $responseLocal->assertSee('@click="simulateJoin()"', false);
-    }
 }

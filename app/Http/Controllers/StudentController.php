@@ -74,14 +74,7 @@ class StudentController extends Controller
      * Fakes "the student typed the code in VR": waiting -> in_progress.
      * Only works when APP_ENV=local, otherwise 404.
      */
-    public function simulateJoin(string|int $id, Request $request, SessionService $sessionService): JsonResponse
-    {
-        abort_unless(app()->environment('local'), 404);
 
-        $this->findOwnedSession($id, $request, $sessionService);
-
-        return response()->json($sessionService->simulateJoin($id));
-    }
 
     /**
      * Load a session: 404 if it does not exist, 403 if it belongs to someone else.

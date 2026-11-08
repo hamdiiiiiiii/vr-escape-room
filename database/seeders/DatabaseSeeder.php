@@ -25,9 +25,13 @@ class DatabaseSeeder extends Seeder
                 'role' => 'instructor',
                 'email_verified_at' => now(),
             ]
-        );
+        );  
+
+     
+
 
         // 5 students
+
         for ($i = 1; $i <= 5; $i++) {
             User::updateOrCreate(
                 ['email' => "student{$i}@test.com"],
@@ -39,5 +43,9 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+
+$this->call(RoomSeeder::class);
+$this->call(InstructorLinkSeeder::class);
+$this->call(FakeSessionsSeeder::class);
     }
 }

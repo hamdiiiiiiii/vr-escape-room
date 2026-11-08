@@ -367,3 +367,56 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 - Member 5: should a session code be unique only among active sessions (as in the stub)?
 
 **Ready for next phase:** YES (Phase 4B: code screen, countdown, polling)
+
+---
+
+## Phase 4B-1 Report – Code Screen Layout & Countdown
+
+**Status:** DONE
+
+**What was built:**
+- Completed the full code screen UI in `resources/views/student/session.blade.php` using the shared layout (`<x-app-layout>`), `<x-page-heading>`, `<x-card>`, and `<x-status-badge>`.
+- Prominent 6-digit access code displayed in a large, centered font-mono card with easy selectability.
+- Two clear onboarding steps: "1. Put on the headset." and "2. Type this code on the keypad."
+- Real-time countdown timer powered by Alpine.js computed from `expires_at` (not a local timer that resets on refresh). Ticks every second and transitions automatically to the expired state when reaching `00:00`.
+- Handled all 4 lifecycle states on initial page load and dynamically:
+  - `waiting`: Displays the 6-digit code, short steps, and live minutes:seconds countdown timer.
+  - `in_progress`: Displays "You are in the room! Play in VR" without a countdown timer.
+  - `finished`: Displays "Session Completed!" with an "Open report" button linking to `reports.show`.
+  - `expired`: Displays "This code has expired" with a "Get new code" button that sends a `POST` request to `student.start-room.create`.
+- Updated `<x-status-badge>` to support `expired` state in gray.
+- Maintained mobile responsiveness and kids-friendly educational gaming styling (rounded-2xl cards, indigo accents, no dark mode).
+- Added comprehensive automated tests in `tests/Feature/SessionStartTest.php` for code rendering, steps, countdown timer, and each lifecycle state.
+
+**Files created/changed:**
+- `resources/views/student/session.blade.php` (changed)
+- `resources/views/components/status-badge.blade.php` (changed)
+- `tests/Feature/SessionStartTest.php` (changed: added tests for all 4 session states)
+- `PROGRESS.md` (updated)
+
+**How to test:**
+1. Run automated test suite: `php artisan test` (all 64 tests pass).
+2. Start dev server: `php artisan serve`.
+3. Log in as `student1@test.com` (password: `password`).
+4. Click "Start room" on any room card.
+5. On the session screen:
+   - Verify the large 6-digit code and steps "1. Put on the headset." and "2. Type this code on the keypad."
+   - Verify the countdown shows `09:xx` and counts down every second. Refresh the browser and verify the countdown continues from the true expiry time instead of restarting at 10:00.
+6. Verify local dev helper button: click "Simulate VR Join (waiting -> in_progress)" -> page reloads/updates to "You are in the room! Play in VR".
+7. Verify expired state: open an expired session URL or wait until the timer reaches 00:00 -> displays "This code has expired" and "Get new code" button. Click "Get new code" -> creates a fresh session with a new code.
+
+**Result of my own testing:**
+- Automated test suite passed: **64 passed (248 assertions)**, 0 failures.
+- First page load renders correctly for `waiting`, `in_progress`, `finished`, and `expired` states.
+- `vite build` completed cleanly without errors.
+
+**Problems found:** none
+
+**Decisions I made that you should know about:**
+- Computed initial countdown in seconds on the server using Carbon and passed it directly to Alpine.js so both non-JS SSR and Alpine-reactive clients receive accurate countdown figures immediately without a flash of default values.
+- Used a POST form for the "Get new code" button submitting to `route('student.start-room.create', $session['room_id'])` so fresh sessions are securely generated without mutating state via GET requests.
+
+**Questions for the team (Member 2 / Member 5):** none
+
+**Ready for next phase:** YES (ready for Phase 4B-2: status polling every 3 seconds)
+

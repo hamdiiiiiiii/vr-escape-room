@@ -60,6 +60,92 @@
         </x-card>
     </div>
 
+    <!-- Class Performance Analytics (Phase 5) -->
+    <!-- STUB: data sourced from InstructorService + ReportService stub records. -->
+    <!-- Replace $analytics data source when Member 5 delivers Eloquent session and concept-score relations. -->
+    <div class="mb-10">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Class Performance</h2>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Summary analytics for your assigned students' completed sessions.
+                </p>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                Demo data &mdash; stub records only
+            </span>
+        </div>
+
+        @if ($analytics['class_average'] === null)
+            {{-- Empty state: no finished sessions with valid scores --}}
+            <x-card class="py-10 text-center border-dashed border-2 border-gray-200">
+                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900">No completed sessions yet</h3>
+                <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+                    Class analytics will appear once at least one assigned student completes a session with a valid score.
+                </p>
+            </x-card>
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                {{-- Card 1: Class Average Score --}}
+                <x-card class="border-l-4 border-l-indigo-600">
+                    <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Class Average Score</p>
+                    <div class="flex flex-wrap items-end gap-3 mt-2">
+                        <h3 class="text-3xl font-black text-gray-900">
+                            {{ $analytics['class_average'] }}<span class="text-base font-semibold text-gray-400"> / 100</span>
+                        </h3>
+                        @php
+                            $levelClasses = match ($analytics['class_average_level']) {
+                                'Advanced'      => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                'Proficient'    => 'bg-blue-50 text-blue-700 border-blue-100',
+                                default         => 'bg-red-50 text-red-700 border-red-100',
+                            };
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $levelClasses }}">
+                            {{ $analytics['class_average_level'] }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-3">
+                        Based on <strong>{{ $analytics['finished_session_count'] }}</strong>
+                        {{ Str::plural('completed session', $analytics['finished_session_count']) }} with valid scores.
+                    </p>
+                </x-card>
+
+                {{-- Card 2: Lowest-Scoring Concept --}}
+                <x-card class="border-l-4 border-l-rose-500">
+                    <p class="text-xs font-bold text-rose-600 uppercase tracking-wider">Lowest-Scoring Concept</p>
+                    @if ($analytics['lowest_concept'] === null)
+                        <p class="text-sm text-gray-500 mt-3 italic">Concept score data unavailable for completed sessions.</p>
+                    @else
+                        <div class="mt-2">
+                            <h3 class="text-base font-bold text-gray-900 leading-snug break-words">
+                                {{ $analytics['lowest_concept'] }}
+                            </h3>
+                            <p class="text-3xl font-black text-gray-900 mt-1">
+                                {{ $analytics['lowest_concept_avg'] }}<span class="text-base font-semibold text-gray-400"> / 100</span>
+                            </p>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-3">
+                            Avg concept score from
+                            <strong>{{ $analytics['lowest_concept_sessions'] }}</strong>
+                            {{ Str::plural('session', $analytics['lowest_concept_sessions']) }}.
+                            Concept tags are <span class="italic">provisional</span> &mdash; subject to team approval.
+                        </p>
+                        <p class="text-[10px] text-gray-400 mt-1">
+                            Lowest-scoring = lowest avg concept score, not missed-attempt count.
+                        </p>
+                    @endif
+                </x-card>
+
+            </div>
+        @endif
+    </div>
+
     <!-- Assigned Students Roster Section -->
     <div class="mb-12">
         <div class="flex items-center justify-between mb-5">

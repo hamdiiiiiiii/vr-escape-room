@@ -505,3 +505,19 @@ The following items are explicitly **not** started and require explicit approval
 - Any API contracts, database migrations, or scoring engine implementation.
 - Any Unity-facing JSON serving endpoints.
 
+
+## Phase 5 — Class Analytics
+
+Status: Implemented and automated tests passing.
+
+- Added class analytics calculations to InstructorService.
+- Updated InstructorController to provide analytics to the instructor dashboard.
+- Added a Class Performance section to the instructor dashboard.
+- Average score uses unique finished sessions with valid scores.
+- Lowest-scoring concept uses concept-level scores from matching reports.
+- Excludes unrelated sessions and handles unavailable analytics.
+- Includes alphabetical tie-breaking.
+- Data is demonstrative; real analytics require Member 5's backend.
+- Final Laravel test result: 83 passed, 427 assertions, 0 failures.
+- Vite production build: successful.
+- Member 1 synchronization and real backend integration remain pending.

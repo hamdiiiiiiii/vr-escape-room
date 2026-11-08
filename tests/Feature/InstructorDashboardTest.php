@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\InstructorService;
+use App\Services\ReportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -124,6 +125,14 @@ class InstructorDashboardTest extends TestCase
                 'waiting_count' => 0,
                 'finished_count' => 0,
             ]);
+            $mock->shouldReceive('getClassAnalytics')->once()->andReturn([
+    'class_average' => null,
+    'class_average_level' => null,
+    'lowest_concept' => null,
+    'lowest_concept_avg' => null,
+    'lowest_concept_sessions' => 0,
+    'finished_session_count' => 0,
+]);
         });
 
         $instructor = User::factory()->create(['role' => 'instructor']);
@@ -153,6 +162,158 @@ class InstructorDashboardTest extends TestCase
         $response->assertSee('In Progress (1)');
         $response->assertSee('Waiting (2)');
         $response->assertSee('Finished (4)');
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 5 — Class Performance Analytics tests
+    // -------------------------------------------------------------------------
+
+    /**
+     * The Class Performance section must be visible on the instructor dashboard
+     * and display the correct demo values derived from stub data.
+     *
+     * Expected demo values (from InstructorService finished sessions 101, 102, 201, 401):
+     *   Class average  : 91  (rounded from 91.25 = (92+85+88+100)/4)
+     *   Score level    : Advanced
+     *   Lowest concept : Invalid Partition Handling (avg 84, from session 102 only)
+     */
+    public function test_instructor_dashboard_renders_class_analytics_section(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
+
+        $response->assertStatus(200);
+
+        // Section heading and "Demo data" label
+        $response->assertSee('Class Performance');
+        $response->assertSee('Demo data');
+
+        // Class Average Score card
+        $response->assertSee('Class Average Score');
+        $response->assertSee('91');       // rounded class average
+        $response->assertSee('Advanced'); // score level
+
+        // Lowest-Scoring Concept card
+        $response->assertSee('Lowest-Scoring Concept');
+        $response->assertSee('Invalid Partition Handling');
+        $response->assertSee('84');       // lowest concept avg
+
+        // Provisional disclaimer must be visible
+        $response->assertSee('provisional');
+    }
+
+    /**
+     * When no finished sessions exist the Class Performance section must display
+     * the "No completed sessions yet" empty state and no metric values.
+     */
+    public function test_instructor_dashboard_shows_analytics_unavailable_when_no_finished_sessions(): void
+    {
+        $this->mock(InstructorService::class, function (MockInterface $mock) {
+            $mock->shouldReceive('getAssignedStudents')->once()->andReturn([]);
+            $mock->shouldReceive('getStudentSessions')->once()->andReturn([]);
+            $mock->shouldReceive('getOverview')->once()->andReturn([
+                'total_students'   => 0,
+                'in_progress_count' => 0,
+                'waiting_count'    => 0,
+                'finished_count'   => 0,
+            ]);
+            $mock->shouldReceive('getClassAnalytics')->once()->andReturn([
+                'class_average'           => null,
+                'class_average_level'     => null,
+                'lowest_concept'          => null,
+                'lowest_concept_avg'      => null,
+                'lowest_concept_sessions' => 0,
+                'finished_session_count'  => 0,
+            ]);
+        });
+
+        $instructor = User::factory()->create(['role' => 'instructor']);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Class Performance');
+        $response->assertSee('No completed sessions yet');
+        $response->assertDontSee('Class Average Score');
+        $response->assertDontSee('Lowest-Scoring Concept');
+    }
+
+    /**
+     * getClassAnalytics() must return the correct class average and score level
+     * based strictly on finished sessions with valid scores from getStudentSessions().
+     *
+     * Finished sessions in stub: 101 (92), 102 (85), 201 (88), 401 (100).
+     * Sessions 501 and 502 are absent from getStudentSessions() and must NOT contribute.
+     * Waiting/in-progress sessions (103, 202, 301) must be excluded.
+     *
+     * Expected: average = round((92+85+88+100)/4) = round(91.25) = 91, level = Advanced.
+     */
+    public function test_get_class_analytics_returns_correct_class_average(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service    = app(InstructorService::class);
+        $analytics  = $service->getClassAnalytics($instructor);
+
+        $this->assertSame(91, $analytics['class_average']);
+        $this->assertSame('Advanced', $analytics['class_average_level']);
+        $this->assertSame(4, $analytics['finished_session_count']);
+    }
+
+    /**
+     * getClassAnalytics() must identify the concept with the lowest average concept score
+     * across finished sessions that have a matching report, excluding sessions 501 and 502
+     * which are not present in getStudentSessions().
+     *
+     * Concepts from reports 101, 102, 201, 401:
+     *   Boundary Testing          : 94      (avg 94.0)
+     *   Off-by-One Trap Detection : 90      (avg 90.0)
+     *   Equivalence Partitioning  : 86, 90  (avg 88.0)
+     *   Invalid Partition Handling: 84      (avg 84.0) ← lowest
+     *   Boundary Input Sorting    : 85      (avg 85.0)
+     *   Assertions & Test Suites  : 100     (avg 100.0)
+     *   System State Verification : 100     (avg 100.0)
+     *
+     * Expected lowest: "Invalid Partition Handling", avg = 84, contributing sessions = 1.
+     */
+    public function test_get_class_analytics_returns_correct_lowest_scoring_concept(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service    = app(InstructorService::class);
+        $analytics  = $service->getClassAnalytics($instructor);
+
+        $this->assertSame('Invalid Partition Handling', $analytics['lowest_concept']);
+        $this->assertSame(84, $analytics['lowest_concept_avg']);
+        $this->assertSame(1, $analytics['lowest_concept_sessions']);
+    }
+
+    /**
+     * When two or more concepts share the same lowest average score, the tie must be
+     * broken by selecting the first concept alphabetically (ascending).
+     *
+     * This test mocks ReportService::findReport() to return two concepts with identical
+     * scores ("Zeta Concept" and "Alpha Concept", both 70) for every finished session.
+     * The service must resolve the tie in favour of "Alpha Concept".
+     */
+    public function test_get_class_analytics_tie_broken_alphabetically(): void
+    {
+        $this->mock(ReportService::class, function (MockInterface $mock) {
+            $mock->shouldReceive('findReport')
+                 ->andReturn([
+                     'concept_scores' => [
+                         ['concept' => 'Zeta Concept',  'score' => 70],
+                         ['concept' => 'Alpha Concept', 'score' => 70],
+                     ],
+                 ]);
+        });
+
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $service    = app(InstructorService::class);
+        $analytics  = $service->getClassAnalytics($instructor);
+
+        // Both concepts have avg 70; "Alpha Concept" wins alphabetically.
+        $this->assertSame('Alpha Concept', $analytics['lowest_concept']);
+        $this->assertSame(70, $analytics['lowest_concept_avg']);
     }
 }
 

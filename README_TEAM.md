@@ -295,3 +295,13 @@ When the real database and API are ready:
 
 
 
+
+### Member 2 — Phase 5: Class Analytics
+
+The instructor dashboard now includes demo class analytics:
+average score across finished sessions and the lowest-scoring
+concept based on available report-level concept scores.
+
+Analytics exclude unrelated sessions and do not treat missing
+concept scores as zero. Data is currently stubbed and must be
+connected to Member 5's backend before production use.

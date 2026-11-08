@@ -18,11 +18,14 @@ class InstructorController extends Controller
         $sessions = $instructorService->getStudentSessions($instructor);
         $overview = $instructorService->getOverview($instructor);
 
+        $analytics = $instructorService->getClassAnalytics($instructor);
+
         return view('instructor.dashboard', [
             'instructor' => $instructor,
-            'students' => $students,
-            'sessions' => $sessions,
-            'overview' => $overview,
+            'students'   => $students,
+            'sessions'   => $sessions,
+            'overview'   => $overview,
+            'analytics'  => $analytics,
         ]);
     }
 }

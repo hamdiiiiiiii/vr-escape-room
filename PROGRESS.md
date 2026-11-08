@@ -560,4 +560,47 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 
 **Member 1 Final Phase Complete:** All tasks for Member 1 are fully finished, tested, committed, and documented.
 
+---
+
+## Polish Report – Profile, Navigation & Account Protection
+
+**Status:** DONE
+
+**What was built:**
+1. **Desktop User Dropdown & Mobile Profile Navigation:**
+   - Transformed the user box in `resources/views/layouts/navigation.blade.php` into an Alpine.js dropdown with "Profile" (route `profile.edit`) and "Log out" (POST `logout`).
+   - Retained the role badge inside the dropdown toggle button.
+   - Added a dedicated "Profile" link above "Log out" in the mobile navigation drawer.
+   - All interactive elements strictly maintain minimum 44px tap heights (`min-h-[44px]`).
+2. **"My Sessions" Navigation Anchor:**
+   - Added `id="past-sessions"` to the past sessions section in `resources/views/student/dashboard.blade.php`.
+   - Added a "My Sessions" link to both desktop and mobile navigation menus for students, linking directly to `route('student.dashboard') . '#past-sessions'`.
+3. **Restyled Profile Views with Shared Components:**
+   - Overhauled `resources/views/profile/edit.blade.php` using `<x-page-heading>` and `<x-card>` in the consistent BugHunt VR indigo styling.
+   - Cleaned up `update-profile-information-form.blade.php` and `update-password-form.blade.php`.
+   - Hid and excluded the delete account section (`delete-user-form`).
+4. **Disabled Account Deletion:**
+   - Removed the `DELETE /profile` route (`profile.destroy`) from `routes/web.php` and deleted the `destroy()` controller method, preventing users from deleting developer-seeded accounts.
+   - Updated `tests/Feature/ProfileTest.php` to assert that account deletion requests are rejected and the account deletion UI is not rendered.
+5. **Enforced Role Immutability:**
+   - Constrained `ProfileController::update()` to only accept `name` and `email` via `$request->safe()->only(['name', 'email'])`, preventing arbitrary mass-assignment of `role`.
+   - Added automated test in `tests/Feature/ProfileTest.php` verifying that submitting a role change via the profile form is ignored.
+
+**Files created/changed:**
+- `resources/views/layouts/navigation.blade.php` (changed: Alpine user dropdown & mobile Profile link)
+- `resources/views/student/dashboard.blade.php` (changed: added `id="past-sessions"`)
+- `resources/views/profile/edit.blade.php` (changed: restyled with `<x-page-heading>` and `<x-card>`)
+- `resources/views/profile/partials/update-profile-information-form.blade.php` (changed: styled header)
+- `resources/views/profile/partials/update-password-form.blade.php` (changed: styled header)
+- `routes/web.php` (changed: removed `profile.destroy` route)
+- `app/Http/Controllers/ProfileController.php` (changed: protected role assignment, removed `destroy`)
+- `tests/Feature/ProfileTest.php` (changed: added role protection and disabled deletion tests)
+- `tests/Feature/StudentDashboardTest.php` (changed: added navigation anchor test)
+- `PROGRESS.md` (updated)
+
+**Result of testing:**
+- Full test suite: **69 passed (271 assertions)**, 0 failures (`php artisan test`).
+- Asset build (`vite build`): compiled successfully (CSS: 40.21 kB, JS: 114.55 kB).
+
+
 

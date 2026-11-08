@@ -34,5 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+        'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL'),
+        'url' => 'https://api.anthropic.com/v1/messages',
+        'timeout' => 10,
+    ],
 
 ];

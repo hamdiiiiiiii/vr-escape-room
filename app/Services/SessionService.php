@@ -73,16 +73,7 @@ class SessionService
     /**
      * DEV ONLY, will be removed. Pretend the VR game accepted the code.
      */
-    public function simulateJoin(int|string $id): ?array
-    {
-        $session = GameSession::find((int) $id);
-
-        if ($session && $this->effectiveStatus($session) === 'waiting') {
-            $session->update(['status' => 'in_progress', 'started_at' => now()]);
-        }
-
-        return $this->getStatus($id);
-    }
+    
 
     /**
      * @return array<int, array{id: int, room_id: int, room_name: string, date: string, status: string, score: int|null}>

@@ -25,8 +25,6 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/sessions/{id}', [StudentController::class, 'showSession'])->name('student.session.show');
     Route::get('/sessions/{id}/status', [StudentController::class, 'sessionStatus'])->name('student.session.status');
 
-    // DEV ONLY, remove when Member 5's API is connected. Returns 404 unless APP_ENV=local.
-    Route::post('/dev/sessions/{id}/simulate-join', [StudentController::class, 'simulateJoin'])->name('dev.session.simulate-join');
 });
 
 Route::middleware(['auth', 'role:instructor'])->group(function () {

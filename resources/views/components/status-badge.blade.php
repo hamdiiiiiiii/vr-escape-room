@@ -6,6 +6,7 @@
         'waiting' => 'Waiting',
         'in_progress', 'in progress', 'progress' => 'In Progress',
         'finished', 'completed' => 'Finished',
+        'expired' => 'Expired',
         default => ucfirst($status),
     };
 
@@ -13,6 +14,7 @@
         'waiting' => 'bg-amber-100 text-amber-800 border-amber-200',
         'in_progress', 'in progress', 'progress' => 'bg-blue-100 text-blue-800 border-blue-200',
         'finished', 'completed' => 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        'expired' => 'bg-gray-100 text-gray-700 border-gray-300',
         default => 'bg-gray-100 text-gray-800 border-gray-200',
     };
 
@@ -20,6 +22,7 @@
         'waiting' => 'bg-amber-500',
         'in_progress', 'in progress', 'progress' => 'bg-blue-500 animate-pulse',
         'finished', 'completed' => 'bg-emerald-500',
+        'expired' => 'bg-gray-400',
         default => 'bg-gray-400',
     };
 @endphp

@@ -108,6 +108,62 @@ class SessionStartTest extends TestCase
 
         $response->assertOk();
         $response->assertSee($created['code']);
+        $response->assertSee('1. Put on the headset.', false);
+        $response->assertSee('2. Type this code on the keypad.', false);
+        $response->assertSee('Code Expiration Countdown');
+    }
+
+    public function test_session_screen_renders_in_progress_state(): void
+    {
+        $student = $this->student();
+        $created = (new SessionService())->startSession($student, 1);
+
+        // Put session in_progress
+        $session = (new SessionService())->getSession($created['session_id']);
+        $session['status'] = 'in_progress';
+        Cache::forever('stub_session:'.$created['session_id'], $session);
+
+        $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
+
+        $response->assertOk();
+        $response->assertSee('You are in the room! Play in VR');
+        $response->assertSee('In Progress');
+    }
+
+    public function test_session_screen_renders_finished_state(): void
+    {
+        $student = $this->student();
+        $created = (new SessionService())->startSession($student, 1);
+
+        // Put session finished
+        $session = (new SessionService())->getSession($created['session_id']);
+        $session['status'] = 'finished';
+        Cache::forever('stub_session:'.$created['session_id'], $session);
+
+        $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
+
+        $response->assertOk();
+        $response->assertSee('Session Completed!');
+        $response->assertSee('Open report');
+        $response->assertSee(route('reports.show', $created['session_id']));
+        $response->assertSee('Finished');
+    }
+
+    public function test_session_screen_renders_expired_state(): void
+    {
+        $student = $this->student();
+        $created = (new SessionService())->startSession($student, 1);
+
+        // Advance time past 10 minutes
+        $this->travel(11)->minutes();
+
+        $response = $this->actingAs($student)->get(route('student.session.show', $created['session_id']));
+
+        $response->assertOk();
+        $response->assertSee('This code has expired');
+        $response->assertSee('Get new code');
+        $response->assertSee(route('student.start-room.create', 1));
+        $response->assertSee('Expired');
     }
 
     public function test_student_cannot_open_or_poll_another_students_session(): void

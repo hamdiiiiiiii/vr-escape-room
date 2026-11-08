@@ -21,4 +21,13 @@ class GameSession extends Model
     {
         return $this->hasOne(Report::class);
     }
+        public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+        public function puzzleResults()
+    {
+        return $this->hasMany(PuzzleResult::class);
+    }
 }

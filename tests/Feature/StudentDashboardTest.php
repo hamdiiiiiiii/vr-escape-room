@@ -110,14 +110,21 @@ class StudentDashboardTest extends TestCase
         $response->assertDontSee(route('reports.show', 103));
     }
 
-    public function test_student_can_open_start_room_placeholder(): void
+    public function test_old_start_room_get_link_redirects_to_dashboard(): void
     {
         $student = User::factory()->create(['role' => 'student']);
 
         $response = $this->actingAs($student)->get(route('student.start-room', 1));
 
-        $response->assertStatus(200);
-        $response->assertSee('Start room screen comes in Phase 4');
-        $response->assertSee('The Boundary Maze');
+        $response->assertRedirect(route('student.dashboard'));
+    }
+
+    public function test_dashboard_start_room_button_is_a_post_form(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+
+        $response = $this->actingAs($student)->get(route('student.dashboard'));
+
+        $response->assertSee('method="POST" action="'.route('student.start-room.create', 1).'"', false);
     }
 }

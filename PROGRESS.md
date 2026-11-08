@@ -310,3 +310,60 @@ This file is updated after every phase. Each entry follows the standard Phase Re
 - Member 5: See Section 8 in `README_TEAM.md` for the exact return shapes expected for `RoomService` and `SessionService`.
 
 **Ready for next phase:** YES (ready for Phase 4: Start room screen, 6-digit code, timer, and status polling)
+
+---
+
+## Phase 4A Report – Start Room Server Logic
+
+**Status:** DONE
+
+**What was built:**
+- `SessionService::startSession(User, int $roomId)`: unique zero-padded 6-digit code (unique among active sessions), status `waiting`, `expires_at = now + 10 min`. Returns `session_id`, `code`, `status`, `expires_at`.
+- `SessionService::getSession()` and `getStatus()`: a `waiting` session whose `expires_at` has passed becomes `expired`.
+- Sessions are stored in the Laravel cache (key `stub_session:{id}`, with `user_id` inside). No migrations, no tables. Ids start at 1001.
+- Routes (auth + role:student, ownership check, 403 for another student's session, 404 for unknown session): `POST /rooms/{id}/start` (`student.start-room.create`), `GET /sessions/{id}` (`student.session.show`, placeholder view), `GET /sessions/{id}/status` (`student.session.status`, JSON).
+- Dashboard "Start Room" is now a POST form with CSRF. The old `GET /rooms/{id}/start` still works and redirects to the dashboard.
+- DEV ONLY `POST /dev/sessions/{id}/simulate-join` (waiting -> in_progress). Returns 404 unless `APP_ENV=local`. Marked "DEV ONLY, remove when Member 5's API is connected".
+- README_TEAM.md section 8 updated with the new methods, routes and the exact status JSON.
+
+**Files created/changed:**
+- `app/Services/SessionService.php` (changed)
+- `app/Http/Controllers/StudentController.php` (changed)
+- `routes/web.php` (changed)
+- `resources/views/student/dashboard.blade.php` (changed: POST form)
+- `resources/views/student/session.blade.php` (created: placeholder code screen)
+- `tests/Feature/SessionStartTest.php` (created, 14 tests)
+- `tests/Feature/StudentDashboardTest.php` (changed: old placeholder test replaced by redirect + POST-form tests)
+- `README_TEAM.md`, `PROGRESS.md` (updated)
+
+**How to test:**
+1. `php artisan test` (61 tests).
+2. `php artisan serve`, log in as `student1@test.com` / `password`.
+3. Click "Start Room" on a card. You land on `/sessions/1001` showing a 6-digit code, status Waiting and an expiry time 10 minutes ahead.
+4. Open `/sessions/1001/status` in the browser: JSON `{"session_id":1001,"status":"waiting","expires_at":"..."}`.
+5. Log in as `student2@test.com` in another browser and open `/sessions/1001` and `/sessions/1001/status`: both return 403.
+6. Dev tool (needs `APP_ENV=local`, which is the current `.env`): it is a POST route, so use a form or e.g. `curl -X POST` with a session cookie and CSRF token. Then the status becomes `in_progress`. Part B will add a button for this.
+7. Wait 10 minutes (or change the system clock) and reload the status URL: status is `expired`.
+
+**Result of my own testing:**
+- Full suite: **61 passed (232 assertions)**, 0 failures.
+- Tests cover: 6-digit code and redirect, zero padding, uniqueness (50 sessions), 10-minute expiry, status JSON shape, ownership 403, unknown session 404, guest redirect, instructor 403, expired status after 10 minutes, dev route 404 in testing / works in local, dev route ownership.
+- NOT done: I did not click through the pages in a real browser, and the automated tests use the `array` cache driver (phpunit.xml). The `file` cache driver was not exercised. Steps 3 to 7 above are for you to confirm.
+
+**Problems found:**
+- One test failure while writing tests (HTTP 419 on the dev route). Cause: Laravel only skips CSRF checks in the `testing` environment, and the test switched to `local`. Real forms are unaffected. I fixed the tests by sending a CSRF token. No app code changed.
+
+**Decisions I made that you should know about:**
+- The old `GET /rooms/{id}/start` redirects to the dashboard instead of creating a session, because creating data on a GET is unsafe (prefetching, refresh).
+- `expired` is computed from `expires_at` and also saved back to the cache when first seen.
+- The dev route returns 404 outside `local` (route is always registered, the check is inside the controller) so it can be tested.
+- Each click on "Start Room" creates a new session. Old waiting sessions are not cancelled. Part B or Member 5 may want a rule for that.
+- `getPastSessions()` still returns its fixed fake data: sessions created now do not appear in "My past sessions".
+- `resources/views/student/start-room.blade.php` is now unused. I did not delete it (you asked to be asked before deleting files).
+- A student can also open the code screen of an `expired` or `in_progress` session via its URL. Part B should handle those states in the view.
+
+**Questions for the team (Member 2 / Member 5):**
+- Member 5: please confirm the status JSON in README_TEAM.md section 8 and whether the API itself returns `expired` or we derive it from `expires_at`.
+- Member 5: should a session code be unique only among active sessions (as in the stub)?
+
+**Ready for next phase:** YES (Phase 4B: code screen, countdown, polling)

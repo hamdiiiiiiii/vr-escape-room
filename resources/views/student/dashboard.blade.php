@@ -40,11 +40,12 @@
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-gray-100">
-                        <a href="{{ route('student.start-room', $room['id']) }}" class="block w-full">
-                            <x-primary-button type="button" class="w-full justify-center">
+                        <form method="POST" action="{{ route('student.start-room.create', $room['id']) }}">
+                            @csrf
+                            <x-primary-button type="submit" class="w-full justify-center">
                                 Start Room &rarr;
                             </x-primary-button>
-                        </a>
+                        </form>
                     </div>
                 </x-card>
             @endforeach

@@ -243,4 +243,40 @@ When the real `rooms`, `sessions`, and `reports` database tables or external API
 3. Replace the stub arrays inside each method with real Eloquent queries (e.g. `Room::all()`, `Session::where('user_id', $user->id)->get()`) or API HTTP calls (`Http::get(...)`).
 4. Ensure the returned array keys match the format documented above.
 
+### 3. Session start methods (Phase 4A)
+
+The stub keeps sessions in the **Laravel cache** (file driver), one entry per session id (`stub_session:{id}`) with the owner's `user_id` inside. No database table. Session ids start at 1001.
+
+- **`startSession(User $user, int $roomId): array`**
+  Creates a session with a unique zero-padded 6-digit code (unique among active sessions), status `waiting`, `expires_at = now + 10 minutes`.
+  ```json
+  { "session_id": 1001, "code": "042913", "status": "waiting", "expires_at": "2026-11-08T02:10:00+02:00" }
+  ```
+- **`getSession(int|string $id): ?array`**
+  Returns the full session (`id`, `user_id`, `room_id`, `room_name`, `code`, `status`, `created_at`, `expires_at`) or `null`. If `expires_at` has passed and status is still `waiting`, status becomes `expired`.
+- **`getStatus(int|string $id): ?array`**
+  Used by the status polling endpoint. **This is the exact JSON the web page expects from Member 5's API** (`GET /sessions/{id}/status` on our side):
+  ```json
+  { "session_id": 1001, "status": "waiting", "expires_at": "2026-11-08T02:10:00+02:00" }
+  ```
+  `status` is one of `waiting`, `in_progress`, `finished`, `expired`. `expires_at` is an ISO 8601 date.
+  Note: `expired` is not stored by us as a real VR state. Whoever owns the data must either return `expired` themselves or let us derive it from `expires_at` (as the stub does).
+- **`simulateJoin(int|string $id): ?array`** (**DEV ONLY**)
+  Fakes the VR game accepting the code (`waiting` -> `in_progress`). Remove it together with the route below.
+
+### New routes (all `auth` + `role:student`; a student gets 403 on someone else's session)
+
+| Route name | Method + URL | Purpose |
+|---|---|---|
+| `student.start-room.create` | `POST /rooms/{id}/start` | Create the session, redirect to the code screen |
+| `student.start-room` | `GET /rooms/{id}/start` | Old link, only redirects to the dashboard |
+| `student.session.show` | `GET /sessions/{id}` | Code screen (placeholder until Phase 4B) |
+| `student.session.status` | `GET /sessions/{id}/status` | JSON status for polling |
+| `dev.session.simulate-join` | `POST /dev/sessions/{id}/simulate-join` | **DEV ONLY**, 404 unless `APP_ENV=local` |
+
+### What Member 5 must remove/replace
+1. Replace the bodies of `startSession`, `getSession`, `getStatus` in `SessionService` with real database/API calls (keep the return shapes above).
+2. Delete `SessionService::simulateJoin()`, `StudentController::simulateJoin()` and the `dev.session.simulate-join` route.
+3. The stub cache keys (`stub_session*`) and `getPastSessions()` fake data go away. Note: sessions created via `startSession` do **not** yet appear in the "My past sessions" list, which still shows fixed fake data.
+
 

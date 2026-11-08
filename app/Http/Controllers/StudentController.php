@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\RoomService;
 use App\Services\SessionService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -25,18 +27,72 @@ class StudentController extends Controller
     }
 
     /**
-     * Display the placeholder start room screen (completed in Phase 4).
+     * Old GET link. Creating a session must be a POST, so this only redirects
+     * back to the dashboard (keeps old links from breaking).
      */
-    public function startRoom(string|int $id, RoomService $roomService): View
+    public function startRoom(): RedirectResponse
     {
-        $room = $roomService->findRoom($id);
+        return redirect()->route('student.dashboard');
+    }
 
-        if (! $room) {
+    /**
+     * Create a session for the chosen room and show its code screen.
+     */
+    public function createSession(string|int $id, Request $request, RoomService $roomService, SessionService $sessionService): RedirectResponse
+    {
+        if (! $roomService->findRoom($id)) {
             abort(404, 'Room not found.');
         }
 
-        return view('student.start-room', [
-            'room' => $room,
-        ]);
+        $created = $sessionService->startSession($request->user(), (int) $id);
+
+        return redirect()->route('student.session.show', $created['session_id']);
+    }
+
+    /**
+     * Code screen (placeholder view, Phase 4 part B builds the real one).
+     */
+    public function showSession(string|int $id, Request $request, SessionService $sessionService): View
+    {
+        $session = $this->findOwnedSession($id, $request, $sessionService);
+
+        return view('student.session', ['session' => $session]);
+    }
+
+    /**
+     * JSON status used by the page to poll every 3 seconds.
+     */
+    public function sessionStatus(string|int $id, Request $request, SessionService $sessionService): JsonResponse
+    {
+        $this->findOwnedSession($id, $request, $sessionService);
+
+        return response()->json($sessionService->getStatus($id));
+    }
+
+    /**
+     * DEV ONLY, remove when Member 5's API is connected.
+     * Fakes "the student typed the code in VR": waiting -> in_progress.
+     * Only works when APP_ENV=local, otherwise 404.
+     */
+    public function simulateJoin(string|int $id, Request $request, SessionService $sessionService): JsonResponse
+    {
+        abort_unless(app()->environment('local'), 404);
+
+        $this->findOwnedSession($id, $request, $sessionService);
+
+        return response()->json($sessionService->simulateJoin($id));
+    }
+
+    /**
+     * Load a session: 404 if it does not exist, 403 if it belongs to someone else.
+     */
+    private function findOwnedSession(string|int $id, Request $request, SessionService $sessionService): array
+    {
+        $session = $sessionService->getSession($id);
+
+        abort_if($session === null, 404, 'Session not found.');
+        abort_if($session['user_id'] !== $request->user()->id, 403, 'This is not your session.');
+
+        return $session;
     }
 }

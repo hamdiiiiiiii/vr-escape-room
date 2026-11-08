@@ -18,7 +18,15 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
+    // Old GET link: only redirects to the dashboard.
     Route::get('/rooms/{id}/start', [StudentController::class, 'startRoom'])->name('student.start-room');
+    Route::post('/rooms/{id}/start', [StudentController::class, 'createSession'])->name('student.start-room.create');
+
+    Route::get('/sessions/{id}', [StudentController::class, 'showSession'])->name('student.session.show');
+    Route::get('/sessions/{id}/status', [StudentController::class, 'sessionStatus'])->name('student.session.status');
+
+    // DEV ONLY, remove when Member 5's API is connected. Returns 404 unless APP_ENV=local.
+    Route::post('/dev/sessions/{id}/simulate-join', [StudentController::class, 'simulateJoin'])->name('dev.session.simulate-join');
 });
 
 Route::middleware(['auth', 'role:instructor'])->group(function () {

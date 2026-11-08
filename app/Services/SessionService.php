@@ -5,9 +5,151 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 class SessionService
 {
+    /** How long a waiting session (and its 6-digit code) stays valid. */
+    public const CODE_LIFETIME_MINUTES = 10;
+
+    private const CACHE_IDS_KEY = 'stub_session_ids';
+    private const CACHE_COUNTER_KEY = 'stub_session_counter';
+    private const CACHE_PREFIX = 'stub_session:';
+
+    /**
+     * Create a new "waiting" session with a unique 6-digit code.
+     *
+     * Stored in the Laravel cache (no database table).
+     *
+     * @return array{session_id: int, code: string, status: string, expires_at: string}
+     */
+    public function startSession(User $user, int $roomId): array
+    {
+        $room = (new RoomService())->findRoom($roomId);
+
+        // Start above the fake past-session ids (101..401) so ids never clash.
+        $id = $this->nextId();
+
+        $session = [
+            'id' => $id,
+            'user_id' => $user->id,
+            'room_id' => $roomId,
+            'room_name' => $room['name'] ?? 'Unknown room',
+            'code' => $this->generateUniqueCode(),
+            'status' => 'waiting',
+            'created_at' => now()->toIso8601String(),
+            'expires_at' => now()->addMinutes(self::CODE_LIFETIME_MINUTES)->toIso8601String(),
+        ];
+
+        $this->saveSession($session);
+
+        $ids = Cache::get(self::CACHE_IDS_KEY, []);
+        $ids[] = $id;
+        Cache::forever(self::CACHE_IDS_KEY, $ids);
+
+        return [
+            'session_id' => $id,
+            'code' => $session['code'],
+            'status' => $session['status'],
+            'expires_at' => $session['expires_at'],
+        ];
+    }
+
+    /**
+     * Get one session (or null). If it is still "waiting" but expires_at has
+     * passed, its status becomes "expired".
+     *
+     * @return array{id: int, user_id: int, room_id: int, room_name: string, code: string, status: string, created_at: string, expires_at: string}|null
+     */
+    public function getSession(int|string $id): ?array
+    {
+        $session = Cache::get(self::CACHE_PREFIX.(int) $id);
+
+        if (! $session) {
+            return null;
+        }
+
+        if ($session['status'] === 'waiting' && now()->greaterThanOrEqualTo($session['expires_at'])) {
+            $session['status'] = 'expired';
+            $this->saveSession($session);
+        }
+
+        return $session;
+    }
+
+    /**
+     * Status payload used by the polling endpoint.
+     *
+     * @return array{session_id: int, status: string, expires_at: string}|null
+     */
+    public function getStatus(int|string $id): ?array
+    {
+        $session = $this->getSession($id);
+
+        if (! $session) {
+            return null;
+        }
+
+        return [
+            'session_id' => $session['id'],
+            'status' => $session['status'],
+            'expires_at' => $session['expires_at'],
+        ];
+    }
+
+    /**
+     * DEV ONLY, remove when Member 5's API is connected.
+     * Pretend the VR game accepted the code: waiting -> in_progress.
+     */
+    public function simulateJoin(int|string $id): ?array
+    {
+        $session = $this->getSession($id);
+
+        if ($session && $session['status'] === 'waiting') {
+            $session['status'] = 'in_progress';
+            $this->saveSession($session);
+        }
+
+        return $this->getStatus($id);
+    }
+
+    private function saveSession(array $session): void
+    {
+        Cache::forever(self::CACHE_PREFIX.$session['id'], $session);
+    }
+
+    private function nextId(): int
+    {
+        $last = Cache::get(self::CACHE_COUNTER_KEY, 1000);
+        $next = $last + 1;
+        Cache::forever(self::CACHE_COUNTER_KEY, $next);
+
+        return $next;
+    }
+
+    /**
+     * 6-digit, zero padded code that no active (waiting/in_progress, not expired)
+     * session is using.
+     */
+    private function generateUniqueCode(): string
+    {
+        $activeCodes = [];
+
+        foreach (Cache::get(self::CACHE_IDS_KEY, []) as $id) {
+            $session = $this->getSession($id);
+
+            if ($session && in_array($session['status'], ['waiting', 'in_progress'], true)) {
+                $activeCodes[] = $session['code'];
+            }
+        }
+
+        do {
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        } while (in_array($code, $activeCodes, true));
+
+        return $code;
+    }
+
     /**
      * Get past escape room sessions for a specific student.
      *

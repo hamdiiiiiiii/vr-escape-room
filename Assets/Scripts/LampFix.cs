@@ -16,13 +16,18 @@ public class LampFix : MonoBehaviour
         if (lampImage == null) lampImage = GetComponent<Image>();
         GetComponent<Button>().onClick.AddListener(Fix);
     }
-
-    public void Fix()
-    {
-        if (fixedAlready) return;
-        fixedAlready = true;
-        lampImage.color = onColor;
-        Debug.Log("Lamp 3 fixed!");
-        onFixed.Invoke();
-    }
+void Update()
+{
+    if (UnityEngine.InputSystem.Keyboard.current != null &&
+        UnityEngine.InputSystem.Keyboard.current.fKey.wasPressedThisFrame)
+        Fix();
+}    public void Fix()
+{
+    if (fixedAlready) return;
+    fixedAlready = true;
+    lampImage.color = onColor;
+    Debug.Log("Lamp 3 fixed!");
+    GameEvents.RaisePowerRestored();   // <-- the new line
+    onFixed.Invoke();
+}
 }

@@ -1,11 +1,7 @@
 fileFormatVersion: 2
 guid: 47c8a087b24bd45439708c5ed9bfd962
-NativeFormatImporter:
-  externalObjects: {}
-  mainObjectFileID: 2100000
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
+labels:
+- UnityAI
 AssetOrigin:
   serializedVersion: 1
   productId: 368242
@@ -13,3 +9,9 @@ AssetOrigin:
   packageVersion: 1.0
   assetPath: Assets/PolyKebap/OilPaintings/Materials/Painting_1.mat
   uploadId: 887786
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

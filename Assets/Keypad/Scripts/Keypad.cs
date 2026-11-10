@@ -45,6 +45,7 @@ namespace NavKeypad
 
         private void Awake()
         {
+            if (!enabled) return;
             ClearInput();
             panelMesh.material.SetVector("_EmissionColor", screenNormalColor * screenIntensity);
         }

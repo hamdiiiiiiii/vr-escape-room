@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Room;
 use App\Services\RoomService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ContentPackTest extends TestCase
 {
+    use RefreshDatabase;
     /**
      * Helper to load and decode the demo-room.json file.
      *
@@ -60,6 +63,13 @@ class ContentPackTest extends TestCase
         $this->assertGreaterThan(0, $data['timeLimitSeconds']);
 
         // Room 1 (The Boundary Maze) has time_limit_minutes: 15 (900 seconds)
+        Room::create([
+            'id' => $data['roomId'],
+            'name' => $data['name'],
+            'time_limit_seconds' => $data['timeLimitSeconds'],
+            'config' => $data,
+        ]);
+
         $roomService = new RoomService();
         $room = $roomService->findRoom($data['roomId']);
 

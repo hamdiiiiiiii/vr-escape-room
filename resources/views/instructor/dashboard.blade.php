@@ -2,12 +2,7 @@
     <!-- Page Heading -->
     <x-page-heading
         title="Instructor Dashboard"
-        description="Monitor student escape room performance, review testing analytics, and manage classroom VR sessions.">
-        <x-slot name="actions">
-            <x-primary-button type="button" class="w-full sm:w-auto">
-                Export Gradebook
-            </x-primary-button>
-        </x-slot>
+        description="Review assigned students, track escape room challenge sessions, and inspect student test reports.">
     </x-page-heading>
 
     <!-- Overview Metric Cards -->
@@ -267,17 +262,37 @@
                 <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Student Sessions</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Recorded escape room runs across assigned students.</p>
             </div>
-            <h3 class="text-base font-bold text-gray-900">Instructor Management Module</h3>
-            <p class="text-sm text-gray-500 mt-1 max-w-lg mx-auto">
-                Member 2 fills this in — Real-time classroom monitoring, session logs, student testing mistake breakdowns, and AI feedback reports will live here.
-            </p>
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <x-primary-button type="button" class="w-full sm:w-auto">
-                    View Class Reports
-                </x-primary-button>
-                <x-secondary-button type="button" class="w-full sm:w-auto">
-                    Room Configurations
-                </x-secondary-button>
+
+            <!-- Simple Alpine.js Status Filter -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button
+                    type="button"
+                    @click="activeFilter = 'all'"
+                    :class="activeFilter === 'all' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    All ({{ count($sessions) }})
+                </button>
+                <button
+                    type="button"
+                    @click="activeFilter = 'in_progress'"
+                    :class="activeFilter === 'in_progress' ? 'bg-blue-600 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    In Progress ({{ $overview['in_progress_count'] }})
+                </button>
+                <button
+                    type="button"
+                    @click="activeFilter = 'waiting'"
+                    :class="activeFilter === 'waiting' ? 'bg-amber-500 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    Waiting ({{ $overview['waiting_count'] }})
+                </button>
+                <button
+                    type="button"
+                    @click="activeFilter = 'finished'"
+                    :class="activeFilter === 'finished' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    Finished ({{ $overview['finished_count'] }})
+                </button>
             </div>
         </div>
 

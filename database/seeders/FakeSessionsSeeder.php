@@ -29,16 +29,16 @@ class FakeSessionsSeeder extends Seeder
         // [puzzleId, concept, solved, attempts, seconds, hints] per puzzle
         $scenarios = [
             'escaped_good' => ['escaped', [
-                ['p1', 'bug-spotting', true, 1, 60, 0],
-                ['p2', 'test-case', true, 2, 90, 0],
+                ['puzzle-obs-01', 'Boundary Testing', true, 1, 60, 0],
+                ['puzzle-asm-02', 'Boundary Testing', true, 2, 90, 0],
             ]],
             'escaped_helped' => ['escaped', [
-                ['p1', 'bug-spotting', true, 3, 150, 1],
-                ['p2', 'test-case', true, 1, 80, 0],
+                ['puzzle-obs-01', 'Boundary Testing', true, 3, 150, 1],
+                ['puzzle-asm-02', 'Boundary Testing', true, 1, 80, 0],
             ]],
             'timed_out' => ['timed_out', [
-                ['p1', 'bug-spotting', true, 2, 200, 0],
-                ['p2', 'test-case', false, 3, 400, 2],
+                ['puzzle-obs-01', 'Boundary Testing', true, 2, 200, 0],
+                ['puzzle-asm-02', 'Boundary Testing', false, 3, 400, 2],
             ]],
         ];
         $keys = array_keys($scenarios);

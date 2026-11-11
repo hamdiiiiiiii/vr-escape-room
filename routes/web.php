@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ReportApiController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,23 +27,19 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 
     Route::get('/sessions/{id}', [StudentController::class, 'showSession'])->name('student.session.show');
     Route::get('/sessions/{id}/status', [StudentController::class, 'sessionStatus'])->name('student.session.status');
-       
-
 });
 
 Route::middleware(['auth', 'role:instructor'])->group(function () {
-    Route::get('/instructor/dashboard', function () {
-        return view('instructor.dashboard');
-    })->name('instructor.dashboard');
-    
+    Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])
+        ->name('instructor.dashboard');
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/reports/{id}', function ($id) {
-        return view('reports.show', ['reportId' => $id]);
-    })->name('reports.show');
-   Route::get('/api/sessions/{id}/report', [ReportApiController::class, 'show'])
+    Route::get('/reports/{id}', [ReportController::class, 'show'])->name('reports.show');
+
+    Route::get('/api/sessions/{id}/report', [ReportApiController::class, 'show'])
         ->whereNumber('id')->name('api.sessions.report');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });

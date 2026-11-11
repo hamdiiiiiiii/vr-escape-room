@@ -9,24 +9,20 @@ use Illuminate\View\View;
 class InstructorController extends Controller
 {
     /**
-     * Display the instructor dashboard with assigned students and session records.
+     * Display the instructor dashboard.
      */
-    public function dashboard(Request $request, InstructorService $instructorService): View
-    {
+    public function dashboard(
+        Request $request,
+        InstructorService $instructorService
+    ): View {
         $instructor = $request->user();
-        $students = $instructorService->getAssignedStudents($instructor);
-        $sessions = $instructorService->getStudentSessions($instructor);
-        $overview = $instructorService->getOverview($instructor);
-
-        $analytics = $instructorService->getClassAnalytics($instructor);
 
         return view('instructor.dashboard', [
             'instructor' => $instructor,
-            'students'   => $students,
-            'sessions'   => $sessions,
-            'overview'   => $overview,
-            'analytics'  => $analytics,
+            'students' => $instructorService->getAssignedStudents($instructor),
+            'sessions' => $instructorService->getStudentSessions($instructor),
+            'overview' => $instructorService->getOverview($instructor),
+            'analytics' => $instructorService->getClassAnalytics($instructor),
         ]);
     }
 }
-

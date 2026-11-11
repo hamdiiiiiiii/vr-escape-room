@@ -12,23 +12,28 @@ use Illuminate\View\View;
 class StudentController extends Controller
 {
     /**
-     * Display the student dashboard with rooms and past sessions.
+     * Display the student dashboard with available rooms and past sessions.
      */
-    public function dashboard(Request $request, RoomService $roomService, SessionService $sessionService): View
-    {
+    public function dashboard(
+        Request $request,
+        RoomService $roomService,
+        SessionService $sessionService
+    ): View {
+        $student = $request->user();
+
         $rooms = $roomService->getRooms();
-        $sessions = $sessionService->getPastSessions($request->user());
+        $sessions = $sessionService->getPastSessions($student);
 
         return view('student.dashboard', [
-            'student' => $request->user(),
+            'student' => $student,
             'rooms' => $rooms,
             'sessions' => $sessions,
         ]);
     }
 
     /**
-     * Old GET link. Creating a session must be a POST, so this only redirects
-     * back to the dashboard (keeps old links from breaking).
+     * Keep old GET links working without creating a session.
+     * Session creation must happen through POST.
      */
     public function startRoom(): RedirectResponse
     {
@@ -36,55 +41,87 @@ class StudentController extends Controller
     }
 
     /**
-     * Create a session for the chosen room and show its code screen.
+     * Create a database-backed session for the selected room.
      */
-    public function createSession(string|int $id, Request $request, RoomService $roomService, SessionService $sessionService): RedirectResponse
-    {
-        if (! $roomService->findRoom($id)) {
-            abort(404, 'Room not found.');
-        }
+    public function createSession(
+        string|int $id,
+        Request $request,
+        RoomService $roomService,
+        SessionService $sessionService
+    ): RedirectResponse {
+        $room = $roomService->findRoom($id);
 
-        $created = $sessionService->startSession($request->user(), (int) $id);
+        abort_if($room === null, 404, 'Room not found.');
 
-        return redirect()->route('student.session.show', $created['session_id']);
+        $created = $sessionService->startSession(
+            $request->user(),
+            (int) $id
+        );
+
+        return redirect()->route(
+            'student.session.show',
+            $created['session_id']
+        );
     }
 
     /**
-     * Code screen (placeholder view, Phase 4 part B builds the real one).
+     * Display the session code screen.
      */
-    public function showSession(string|int $id, Request $request, SessionService $sessionService): View
-    {
-        $session = $this->findOwnedSession($id, $request, $sessionService);
+    public function showSession(
+        string|int $id,
+        Request $request,
+        SessionService $sessionService
+    ): View {
+        $session = $this->findOwnedSession(
+            $id,
+            $request,
+            $sessionService
+        );
 
-        return view('student.session', ['session' => $session]);
+        return view('student.session', [
+            'session' => $session,
+        ]);
     }
 
     /**
-     * JSON status used by the page to poll every 3 seconds.
+     * Return the session status for frontend polling.
      */
-    public function sessionStatus(string|int $id, Request $request, SessionService $sessionService): JsonResponse
-    {
+    public function sessionStatus(
+        string|int $id,
+        Request $request,
+        SessionService $sessionService
+    ): JsonResponse {
         $this->findOwnedSession($id, $request, $sessionService);
 
-        return response()->json($sessionService->getStatus($id));
+        return response()->json(
+            $sessionService->getStatus($id)
+        );
     }
 
     /**
-     * DEV ONLY, remove when Member 5's API is connected.
-     * Fakes "the student typed the code in VR": waiting -> in_progress.
-     * Only works when APP_ENV=local, otherwise 404.
+     * Load a session and verify that it belongs to the authenticated student.
+     *
+     * Returns 404 if the session does not exist and 403 if it belongs
+     * to another user.
      */
-
-
-    /**
-     * Load a session: 404 if it does not exist, 403 if it belongs to someone else.
-     */
-    private function findOwnedSession(string|int $id, Request $request, SessionService $sessionService): array
-    {
+    private function findOwnedSession(
+        string|int $id,
+        Request $request,
+        SessionService $sessionService
+    ): array {
         $session = $sessionService->getSession($id);
 
-        abort_if($session === null, 404, 'Session not found.');
-        abort_if($session['user_id'] !== $request->user()->id, 403, 'This is not your session.');
+        abort_if(
+            $session === null,
+            404,
+            'Session not found.'
+        );
+
+        abort_if(
+            (int) $session['user_id'] !== (int) $request->user()->id,
+            403,
+            'This is not your session.'
+        );
 
         return $session;
     }

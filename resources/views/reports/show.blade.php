@@ -4,14 +4,19 @@
         title="Session Performance Report"
         :description="'Session #' . $report['id'] . ' • ' . $report['room_name'] . ' • Completed on ' . $report['date']">
         <x-slot name="actions">
-            <a href="{{ route('dashboard') }}" class="w-full sm:w-auto">
-                <x-secondary-button type="button" class="w-full sm:w-auto">
-                    &larr; Back to Dashboard
-                </x-secondary-button>
-            </a>
-            <x-primary-button type="button" class="w-full sm:w-auto">
-                Download PDF
-            </x-primary-button>
+            @if ($isInstructor)
+                <a href="{{ route('instructor.dashboard') }}">
+                    <x-secondary-button type="button">
+                        &larr; Back to Instructor Dashboard
+                    </x-secondary-button>
+                </a>
+            @else
+                <a href="{{ route('student.dashboard') }}">
+                    <x-secondary-button type="button">
+                        &larr; Back to Student Dashboard
+                    </x-secondary-button>
+                </a>
+            @endif
         </x-slot>
     </x-page-heading>
 

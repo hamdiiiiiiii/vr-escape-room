@@ -15,6 +15,7 @@ class PuzzleResult extends Model
         'time_seconds' => 'integer',
         'hints_used' => 'integer',
         'score' => 'integer',
+        'wrong_answers' => 'array',
     ];
 
     public function gameSession(): BelongsTo

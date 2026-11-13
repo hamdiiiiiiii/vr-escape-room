@@ -68,6 +68,16 @@ class SessionApiController extends Controller
             'attempts' => ['required', 'integer', 'min:1', 'max:3'],
             'timeSeconds' => ['required', 'integer', 'min:0', 'max:86400'],
             'hintsUsed' => ['required', 'integer', 'min:0', 'max:2'],
+            // Optional: the wrong answers the player tried (at most 3).
+            // Each is a short string, a number, or a small object.
+            'wrongAnswers' => ['sometimes', 'nullable', 'array', 'max:3'],
+            'wrongAnswers.*' => [function ($attribute, $value, $fail) {
+                if (! is_scalar($value) && ! is_array($value)) {
+                    $fail('Each wrong answer must be text, a number or an object.');
+                } elseif (mb_strlen(json_encode($value)) > 200) {
+                    $fail('A wrong answer is too long (200 characters at most).');
+                }
+            }],
         ]);
 
         if ($session->status !== 'in_progress') {
@@ -89,6 +99,7 @@ class SessionApiController extends Controller
                 'attempts' => $data['attempts'],
                 'time_seconds' => $data['timeSeconds'],
                 'hints_used' => $data['hintsUsed'],
+                'wrong_answers' => $data['wrongAnswers'] ?? null,
                 'score' => $score,
             ]
         );

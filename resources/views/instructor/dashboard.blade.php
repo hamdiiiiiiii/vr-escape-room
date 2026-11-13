@@ -162,6 +162,14 @@
                             </span>
                         </div>
                         <div class="hud-bar"><i style="width: {{ round($row['avg_time_seconds'] / $maxT * 100) }}%; background: {{ $i === 0 ? '#ff8a3d' : '#3fe0c5' }};"></i></div>
+                        @if (!empty($row['common_wrong']))
+                            <p class="mt-1.5 font-mono text-[11px] text-gray-500">
+                                Common wrong answers:
+                                @foreach ($row['common_wrong'] as $w)
+                                    <span class="text-rose-500">{{ $w['answer'] }}</span> ({{ $w['count'] }}x){{ $loop->last ? '' : ',' }}
+                                @endforeach
+                            </p>
+                        @endif
                     </div>
                 @endforeach
             </div>

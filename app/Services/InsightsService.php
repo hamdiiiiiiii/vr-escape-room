@@ -257,6 +257,7 @@ class InsightsService
                 'avg_attempts' => round($rows->avg('attempts'), 1),
                 'avg_hints' => round($rows->avg('hints_used'), 1),
                 'avg_time_seconds' => (int) round($rows->avg('time_seconds')),
+                'wrong_answers' => $this->commonWrongAnswers($rows, 3),
             ];
         })->filter(fn ($p) => $p['avg_score'] < self::WEAK_BELOW)
             ->sortBy('avg_score')->values()->all();
@@ -295,6 +296,7 @@ class InsightsService
                 'avg_hints' => round($rows->avg('hints_used'), 1),
                 'avg_attempts' => round($rows->avg('attempts'), 1),
                 'fail_rate' => (int) round($rows->where('solved', false)->count() / max(1, $rows->count()) * 100),
+                'common_wrong' => $this->commonWrongAnswers($rows),
             ];
         })->sortByDesc('avg_time_seconds')->values()->all();
     }
@@ -350,8 +352,32 @@ class InsightsService
                 'hints' => (int) $r->hints_used,
                 'attempts' => (int) $r->attempts,
                 'solved' => (bool) $r->solved,
+                'wrong' => collect($r->wrong_answers ?? [])->map(fn ($a) => $this->formatAnswer($a))->all(),
             ];
         })->all();
+    }
+
+    /**
+     * The wrong answers players gave most often.
+     *
+     * @return array<int, array{answer:string,count:int}>
+     */
+    public function commonWrongAnswers(Collection $results, int $limit = 2): array
+    {
+        return $results
+            ->flatMap(fn ($r) => $r->wrong_answers ?? [])
+            ->map(fn ($a) => $this->formatAnswer($a))
+            ->countBy()
+            ->sortDesc()
+            ->take($limit)
+            ->map(fn ($count, $answer) => ['answer' => (string) $answer, 'count' => $count])
+            ->values()
+            ->all();
+    }
+
+    private function formatAnswer(mixed $answer): string
+    {
+        return is_scalar($answer) ? (string) $answer : (string) json_encode($answer);
     }
 
     // ---------------------------------------------------------------

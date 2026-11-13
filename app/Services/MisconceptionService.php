@@ -96,12 +96,21 @@ class MisconceptionService
     public function forResult(PuzzleResult $result): array
     {
         $puzzle = $this->puzzle((string) $result->puzzle_id);
-        if ($puzzle === null) {
-            return [];
-        }
 
+        return $puzzle === null ? [] : $this->forAnswers($puzzle, $result->wrong_answers ?? []);
+    }
+
+    /**
+     * Misconception codes for a list of wrong answers on a given puzzle config.
+     *
+     * @param array<string,mixed> $puzzle
+     * @param array<int,mixed> $answers
+     * @return array<int, string>
+     */
+    public function forAnswers(array $puzzle, array $answers): array
+    {
         $codes = [];
-        foreach (($result->wrong_answers ?? []) as $answer) {
+        foreach ($answers as $answer) {
             $code = match ($puzzle['type'] ?? null) {
                 'observation' => $this->observation($puzzle, $answer),
                 'assembly' => $this->assembly($puzzle, $answer),

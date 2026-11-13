@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GeneratedPuzzle;
 use App\Models\User;
+use App\Services\ClassBriefingService;
 use App\Services\InsightsService;
 use App\Services\PuzzleGeneratorService;
 use App\Services\InstructorService;
@@ -18,7 +19,8 @@ class InstructorController extends Controller
     public function dashboard(
         Request $request,
         InstructorService $instructorService,
-        InsightsService $insights
+        InsightsService $insights,
+        ClassBriefingService $briefing
     ): View {
         $instructor = $request->user();
 
@@ -30,6 +32,9 @@ class InstructorController extends Controller
             'analytics' => $instructorService->getClassAnalytics($instructor),
             'stuck' => $insights->classStuck($instructor),
             'misconceptions' => $insights->classMisconceptions($instructor),
+            'briefing' => $briefing->briefing($instructor),
+            'briefingNarrative' => $briefing->cachedNarrative($instructor),
+            'briefingAiReady' => $briefing->isConfigured(),
             'studentMeta' => $insights->classStudentBadges($instructor),
         ]);
     }

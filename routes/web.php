@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\ApprovedPuzzlesApiController;
 use App\Http\Controllers\Api\StudentInsightsApiController;
+use App\Http\Controllers\ClassBriefingController;
 use App\Http\Controllers\GeneratedPuzzleController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'role:instructor'])->group(function () {
         ->name('instructor.dashboard');
     Route::get('/instructor/content-pack', [InstructorController::class, 'contentPack'])
         ->name('instructor.content-pack');
+    Route::post('/instructor/class-briefing', [ClassBriefingController::class, 'write'])
+        ->name('instructor.class-briefing.write');
     Route::post('/instructor/generated-puzzles', [GeneratedPuzzleController::class, 'store'])
         ->name('instructor.generated-puzzles.store');
     Route::post('/instructor/generated-puzzles/{id}/approve', [GeneratedPuzzleController::class, 'approve'])

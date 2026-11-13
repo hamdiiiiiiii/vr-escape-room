@@ -146,6 +146,37 @@
         @endif
     </div>
 
+    <!-- Class briefing: what to teach next -->
+    <x-card class="mb-10" title="Class briefing" description="What to teach next, worked out from your students' results.">
+        @if (session('briefing_ok'))<p role="status" class="mb-3 text-sm text-emerald-500">{{ session('briefing_ok') }}</p>@endif
+        @if (session('briefing_error'))<p role="alert" class="mb-3 text-sm text-rose-500">{{ session('briefing_error') }}</p>@endif
+
+        @if (! $briefing['has_data'])
+            <p class="text-sm text-gray-500">{{ $briefing['headline'] }} It appears once your students finish rooms.</p>
+        @else
+            <p class="font-display text-lg font-bold text-gray-900 uppercase">{{ $briefing['headline'] }}</p>
+            <ul class="mt-3 space-y-2 list-disc pl-5 text-sm text-gray-700">
+                @foreach ($briefing['points'] as $point)<li>{{ $point }}</li>@endforeach
+            </ul>
+            @if (!empty($briefing['attention']))
+                <p class="hud-eyebrow mt-5 mb-2">NEEDS_ATTENTION</p>
+                <ul class="space-y-1 list-none p-0 m-0 text-sm">
+                    @foreach ($briefing['attention'] as $a)
+                        <li class="flex justify-between gap-3"><span class="text-gray-800">{{ $a['name'] }}</span><span class="font-mono text-xs text-amber-500">{{ $a['concept'] }} &middot; {{ $a['percent'] }}%</span></li>
+                    @endforeach
+                </ul>
+            @endif
+            @if ($briefingNarrative)
+                <p class="mt-5 p-3 rounded-lg border border-gray-200 bg-chamber-950 text-sm text-gray-700 leading-relaxed"><span class="hud-eyebrow block mb-1">AI_SUMMARY</span>{{ $briefingNarrative }}</p>
+            @endif
+            <form method="POST" action="{{ route('instructor.class-briefing.write') }}" class="mt-4">
+                @csrf
+                <x-secondary-button type="submit" :disabled="! $briefingAiReady">Write summary with AI</x-secondary-button>
+                @if (! $briefingAiReady)<span class="ml-2 font-mono text-xs text-gray-500">needs an API key</span>@endif
+            </form>
+        @endif
+    </x-card>
+
     <!-- Where the class gets stuck (from puzzle_results of your students) -->
     <x-card class="mb-10" title="Where the class gets stuck" description="Average time per puzzle across your students. Slowest first.">
         @if (empty($stuck))

@@ -1,3 +1,161 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ------------------------------------------------------------------
+   BugHunt VR — "Vault Door"
+   Visual layer only. No behaviour lives here.
+   ------------------------------------------------------------------ */
+
+@layer base {
+    html { color-scheme: dark; }
+
+    body {
+        background-color: #05080c;
+        color: #c9d3dc;
+        background-image:
+            radial-gradient(ellipse 50% 40% at 72% 0%, #3fe0c524, transparent 70%),
+            radial-gradient(ellipse 40% 30% at 12% 100%, #ff8a3d12, transparent 70%),
+            linear-gradient(#3fe0c50e 1px, transparent 1px),
+            linear-gradient(90deg, #3fe0c50e 1px, transparent 1px);
+        background-size: auto, auto, 44px 44px, 44px 44px;
+        background-attachment: fixed;
+    }
+
+    ::selection { background: #3fe0c5; color: #05080c; }
+
+    /* Dark native controls + scrollbars */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: #05080c; }
+    ::-webkit-scrollbar-thumb { background: #16323a; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2a4650; }
+
+    input::placeholder, textarea::placeholder { color: #6b7c8c; }
+
+    /* Forms plugin: dark inputs everywhere (auth, profile, modals) */
+    [type='text'], [type='email'], [type='url'], [type='password'], [type='number'],
+    [type='date'], [type='datetime-local'], [type='month'], [type='search'], [type='tel'],
+    [type='time'], [type='week'], [multiple], textarea, select {
+        background-color: #05080c;
+        border-color: #16323a;
+        color: #e6edf3;
+    }
+    [type='checkbox'], [type='radio'] {
+        background-color: #05080c;
+        border-color: #2a4650;
+        color: #3fe0c5;
+    }
+}
+
+@layer components {
+    /* Vault panel (used by <x-card>): rounded steel panel */
+    .hud-panel {
+        position: relative;
+        background: #0b1218ed;
+        border: 1px solid #16323a;
+        border-radius: 12px;
+        box-shadow: inset 0 0 40px #00000055;
+    }
+    .hud-panel.hud-panel-hot { border-color: #2a4650; box-shadow: 0 0 0 5px #070c11, 0 0 50px #3fe0c52b, inset 0 0 40px #00000099; }
+
+    /* Orange/black hazard stripe */
+    .hud-hazard { background: repeating-linear-gradient(135deg, #ff8a3d 0 14px, #120c06 14px 28px); }
+
+    /* Small mono label: "// something" */
+    .hud-eyebrow {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px; font-weight: 600;
+        letter-spacing: .16em; text-transform: uppercase;
+        color: #3fe0c5;
+    }
+
+    .hud-glow-text { text-shadow: 0 0 24px #3fe0c58c; }
+
+    /* Scanline overlay + slow sweep (decorative, replaces the old floor grid) */
+    .hud-floor {
+        position: fixed; inset: 0; pointer-events: none; z-index: 1;
+        background: repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px);
+    }
+    .hud-floor::after {
+        content: ''; position: absolute; left: 0; right: 0; top: 0; height: 140px;
+        background: linear-gradient(180deg, transparent, #3fe0c51a, transparent);
+        animation: hud-sweep 7s linear infinite;
+    }
+
+    /* Score ring (conic gradient driven by --pct) */
+    .hud-ring {
+        --pct: 0;
+        width: 84px; height: 84px; border-radius: 50%;
+        background: conic-gradient(var(--ring, #3fe0c5) calc(var(--pct) * 1%), #3fe0c51a 0);
+        display: grid; place-items: center;
+        box-shadow: 0 0 22px #3fe0c533;
+    }
+    .hud-ring > span {
+        width: 66px; height: 66px; border-radius: 50%;
+        background: #0b1218;
+        display: grid; place-items: center;
+        font-family: 'Chakra Petch', sans-serif; font-weight: 700; color: #e6edf3;
+    }
+
+    /* Segmented progress bar */
+    .hud-bar { height: 10px; background: #12262d; border-radius: 5px; overflow: hidden; }
+    .hud-bar > i { display: block; height: 100%; background: #3fe0c5; border-radius: 5px; box-shadow: 0 0 10px #3fe0c588; }
+
+    /* Keypad-style code digit */
+    .hud-digit {
+        display: inline-grid; place-items: center;
+        width: 3.1rem; height: 4rem;
+        background: #05080c;
+        font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 2rem;
+        text-shadow: 0 0 12px #3fe0c5;
+        box-shadow: inset 0 0 14px #3fe0c533, 0 0 12px #3fe0c522;
+        border-radius: 10px; border: 2px solid #ff8a3d; color: #ff8a3d; text-shadow: 0 0 16px #ff8a3d99;
+    }
+    @media (min-width: 640px) { .hud-digit { width: 3.9rem; height: 5rem; font-size: 2.6rem; } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* ---- Landing page animations (decorative only) ---- */
+@keyframes hud-sweep { from { transform: translateY(-160px); } to { transform: translateY(110vh); } }
+@keyframes hud-reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes hud-blink { 50% { opacity: 0; } }
+@keyframes hud-scan { 0% { transform: translateY(-10%); } 100% { transform: translateY(110%); } }
+@keyframes hud-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes hud-door { 0%, 55% { opacity: .25; } 70%, 100% { opacity: 1; } }
+
+@layer components {
+    .hud-line { opacity: 0; animation: hud-reveal .45s ease forwards; animation-delay: var(--d, 0s); }
+    .hud-cursor { display: inline-block; width: .6em; height: 1.05em; vertical-align: -.15em; background: #3fe0c5; animation: hud-blink 1s steps(1) infinite; }
+    .hud-scan { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .hud-scan::after { content: ''; position: absolute; left: 0; right: 0; height: 40%; background: linear-gradient(transparent, #3fe0c514, transparent); animation: hud-scan 5s linear infinite; }
+    .hud-float { animation: hud-float 6s ease-in-out infinite; }
+}
+
+/* ---- Landing page puzzle gate ---- */
+[x-cloak] { display: none !important; }
+@keyframes hud-shake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    15% { transform: translateX(-9px) rotate(-3deg); }
+    30% { transform: translateX(8px) rotate(3deg); }
+    45% { transform: translateX(-6px) rotate(-2deg); }
+    60% { transform: translateX(5px) rotate(2deg); }
+    75% { transform: translateX(-3px); }
+}
+@keyframes hud-pulse-ring { 0% { box-shadow: 0 0 0 0 #ff8a3dcc; } 100% { box-shadow: 0 0 0 18px #ff8a3d00; } }
+@keyframes hud-pop { 0% { transform: scale(.9); opacity: 0; } 60% { transform: scale(1.04); } 100% { transform: scale(1); opacity: 1; } }
+@layer components {
+    .hud-shake { animation: hud-shake .6s ease; }
+    .hud-nudge { animation: hud-pulse-ring 1s ease-out 2; }
+    .hud-pop { animation: hud-pop .45s ease; }
+}
+
+/* ---- Landing: crawling bugs (decorative) ---- */
+@keyframes hud-crawl-a { 0% { transform: translate(0,0) rotate(90deg); } 30% { transform: translate(180px,50px) rotate(120deg); } 60% { transform: translate(80px,190px) rotate(230deg); } 100% { transform: translate(0,0) rotate(450deg); } }
+@keyframes hud-crawl-b { 0% { transform: translate(0,0) rotate(-90deg); } 40% { transform: translate(-200px,-40px) rotate(-130deg); } 70% { transform: translate(-80px,-160px) rotate(-20deg); } 100% { transform: translate(0,0) rotate(-90deg); } }
+@layer components {
+    .hud-crawl-a { animation: hud-crawl-a 20s ease-in-out infinite; }
+    .hud-crawl-b { animation: hud-crawl-b 25s ease-in-out infinite; }
+}

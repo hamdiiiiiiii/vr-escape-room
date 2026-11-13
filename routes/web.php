@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\StudentInsightsApiController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -32,6 +33,8 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 Route::middleware(['auth', 'role:instructor'])->group(function () {
     Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])
         ->name('instructor.dashboard');
+    Route::get('/instructor/content-pack', [InstructorController::class, 'contentPack'])
+        ->name('instructor.content-pack');
 });
 
 Route::middleware('auth')->group(function () {
@@ -39,6 +42,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/api/sessions/{id}/report', [ReportApiController::class, 'show'])
         ->whereNumber('id')->name('api.sessions.report');
+
+    Route::get('/api/students/{id}/weak-points', [StudentInsightsApiController::class, 'weakPoints'])
+        ->whereNumber('id')->name('api.students.weak-points');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\InsightsService;
+use App\Services\LearnerModelService;
 use App\Services\RoomService;
 use App\Services\SessionService;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +19,9 @@ class StudentController extends Controller
     public function dashboard(
         Request $request,
         RoomService $roomService,
-        SessionService $sessionService
+        SessionService $sessionService,
+        InsightsService $insights,
+        LearnerModelService $learner
     ): View {
         $student = $request->user();
 
@@ -28,6 +32,9 @@ class StudentController extends Controller
             'student' => $student,
             'rooms' => $rooms,
             'sessions' => $sessions,
+            'profile' => $insights->studentProfile($student),
+            'mastery' => $learner->masteryFor($student),
+            'recommend' => $learner->recommend($student),
         ]);
     }
 

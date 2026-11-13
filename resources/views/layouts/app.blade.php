@@ -10,13 +10,14 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|chakra-petch:500,600,700|jetbrains-mono:400,500,600,700&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-slate-50 text-gray-900 selection:bg-indigo-500 selection:text-white">
-        <div class="min-h-screen flex flex-col">
+    <body class="font-sans antialiased bg-chamber-950 text-gray-700">
+        <div class="hud-floor" aria-hidden="true"></div>
+        <div class="relative z-10 min-h-screen flex flex-col">
             @include('layouts.navigation')
 
             <!-- Main Content Container -->
@@ -25,7 +26,7 @@
             </main>
 
             <!-- Friendly Footer -->
-            <footer class="mt-auto border-t border-gray-200/80 bg-white/60 py-6 text-center text-xs text-gray-500">
+            <footer class="mt-auto border-t border-indigo-500/20 bg-chamber-950/70 py-6 text-center font-mono text-[11px] tracking-wide text-gray-400">
                 <p>&copy; {{ date('Y') }} BugHunt VR &bull; Educational VR Escape Room for Software Testing</p>
             </footer>
         </div>

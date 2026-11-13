@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\InsightsService;
 use App\Services\InstructorService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +14,8 @@ class InstructorController extends Controller
      */
     public function dashboard(
         Request $request,
-        InstructorService $instructorService
+        InstructorService $instructorService,
+        InsightsService $insights
     ): View {
         $instructor = $request->user();
 
@@ -23,6 +25,18 @@ class InstructorController extends Controller
             'sessions' => $instructorService->getStudentSessions($instructor),
             'overview' => $instructorService->getOverview($instructor),
             'analytics' => $instructorService->getClassAnalytics($instructor),
+            'stuck' => $insights->classStuck($instructor),
+            'studentMeta' => $insights->classStudentBadges($instructor),
+        ]);
+    }
+
+    /**
+     * Read-only view of the rooms and puzzles in the content pack.
+     */
+    public function contentPack(InsightsService $insights): View
+    {
+        return view('instructor.content-pack', [
+            'rooms' => $insights->contentPack(),
         ]);
     }
 }

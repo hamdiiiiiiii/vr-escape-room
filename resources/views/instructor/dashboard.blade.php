@@ -9,12 +9,12 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <!-- Assigned Students -->
         <x-card class="border-l-4 border-l-indigo-600">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Assigned Students</p>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">{{ $overview['total_students'] }} Students</h3>
+                    <p class="font-mono text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Assigned Students</p>
+                    <h3 class="font-display text-2xl font-bold text-gray-900 mt-1">{{ $overview['total_students'] }} Students</h3>
                 </div>
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -25,10 +25,10 @@
 
         <!-- In Progress Sessions -->
         <x-card class="border-l-4 border-l-blue-600">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">In Progress</p>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">{{ $overview['in_progress_count'] }} {{ Str::plural('Session', $overview['in_progress_count']) }}</h3>
+                    <p class="font-mono text-[11px] font-bold text-blue-600 uppercase tracking-wider">In Progress</p>
+                    <h3 class="font-display text-2xl font-bold text-gray-900 mt-1">{{ $overview['in_progress_count'] }} {{ Str::plural('Session', $overview['in_progress_count']) }}</h3>
                 </div>
                 <x-status-badge status="in_progress" />
             </div>
@@ -37,10 +37,10 @@
 
         <!-- Waiting Sessions -->
         <x-card class="border-l-4 border-l-amber-500">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Waiting to Start</p>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">{{ $overview['waiting_count'] }} {{ Str::plural('Session', $overview['waiting_count']) }}</h3>
+                    <p class="font-mono text-[11px] font-bold text-amber-600 uppercase tracking-wider">Waiting to Start</p>
+                    <h3 class="font-display text-2xl font-bold text-gray-900 mt-1">{{ $overview['waiting_count'] }} {{ Str::plural('Session', $overview['waiting_count']) }}</h3>
                 </div>
                 <x-status-badge status="waiting" />
             </div>
@@ -49,10 +49,10 @@
 
         <!-- Finished Sessions -->
         <x-card class="border-l-4 border-l-emerald-500">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Completed Sessions</p>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">{{ $overview['finished_count'] }} {{ Str::plural('Session', $overview['finished_count']) }}</h3>
+                    <p class="font-mono text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Completed Sessions</p>
+                    <h3 class="font-display text-2xl font-bold text-gray-900 mt-1">{{ $overview['finished_count'] }} {{ Str::plural('Session', $overview['finished_count']) }}</h3>
                 </div>
                 <x-status-badge status="finished" />
             </div>
@@ -66,12 +66,12 @@
     <div class="mb-10">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Class Performance</h2>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-gray-900 uppercase tracking-[.02em]">Class Performance</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
                     Summary analytics for your assigned students' completed sessions.
                 </p>
             </div>
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                 Demo data &mdash; stub records only
             </span>
         </div>
@@ -79,7 +79,7 @@
         @if ($analytics['class_average'] === null)
             {{-- Empty state: no finished sessions with valid scores --}}
             <x-card class="py-10 text-center border-dashed border-2 border-gray-200">
-                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center">
+                <div class="w-14 h-14 mx-auto mb-3 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
@@ -94,9 +94,9 @@
 
                 {{-- Card 1: Class Average Score --}}
                 <x-card class="border-l-4 border-l-indigo-600">
-                    <p class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Class Average Score</p>
+                    <p class="font-mono text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Class Average Score</p>
                     <div class="flex flex-wrap items-end gap-3 mt-2">
-                        <h3 class="text-3xl font-black text-gray-900">
+                        <h3 class="font-display text-3xl font-bold text-gray-900">
                             {{ $analytics['class_average'] }}<span class="text-base font-semibold text-gray-400"> / 100</span>
                         </h3>
                         @php
@@ -106,7 +106,7 @@
                                 default         => 'bg-red-50 text-red-700 border-red-100',
                             };
                         @endphp
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $levelClasses }}">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-semibold border {{ $levelClasses }}">
                             {{ $analytics['class_average_level'] }}
                         </span>
                     </div>
@@ -118,7 +118,7 @@
 
                 {{-- Card 2: Lowest-Scoring Concept --}}
                 <x-card class="border-l-4 border-l-rose-500">
-                    <p class="text-xs font-bold text-rose-600 uppercase tracking-wider">Lowest-Scoring Concept</p>
+                    <p class="font-mono text-[11px] font-bold text-rose-600 uppercase tracking-wider">Lowest-Scoring Concept</p>
                     @if ($analytics['lowest_concept'] === null)
                         <p class="text-sm text-gray-500 mt-3 italic">Concept score data unavailable for completed sessions.</p>
                     @else
@@ -126,7 +126,7 @@
                             <h3 class="text-base font-bold text-gray-900 leading-snug break-words">
                                 {{ $analytics['lowest_concept'] }}
                             </h3>
-                            <p class="text-3xl font-black text-gray-900 mt-1">
+                            <p class="font-display text-3xl font-bold text-gray-900 mt-1">
                                 {{ $analytics['lowest_concept_avg'] }}<span class="text-base font-semibold text-gray-400"> / 100</span>
                             </p>
                         </div>
@@ -146,21 +146,43 @@
         @endif
     </div>
 
+    <!-- Where the class gets stuck (from puzzle_results of your students) -->
+    <x-card class="mb-10" title="Where the class gets stuck" description="Average time per puzzle across your students. Slowest first.">
+        @if (empty($stuck))
+            <p class="text-sm text-gray-500">No puzzle data yet. It appears once your students finish rooms.</p>
+        @else
+            @php $maxT = max(1, collect($stuck)->max('avg_time_seconds')); @endphp
+            <div class="space-y-4">
+                @foreach ($stuck as $i => $row)
+                    <div>
+                        <div class="flex flex-wrap justify-between gap-2 text-sm mb-1.5">
+                            <span class="text-gray-800">{{ $row['title'] }} <span class="text-gray-500 text-xs">&middot; {{ $row['concept'] }}</span></span>
+                            <span class="font-mono {{ $i === 0 ? 'text-amber-500' : 'text-indigo-500' }}">
+                                {{ intdiv($row['avg_time_seconds'], 60) }}m {{ $row['avg_time_seconds'] % 60 }}s &middot; {{ $row['avg_hints'] }} hints &middot; {{ $row['fail_rate'] }}% fail
+                            </span>
+                        </div>
+                        <div class="hud-bar"><i style="width: {{ round($row['avg_time_seconds'] / $maxT * 100) }}%; background: {{ $i === 0 ? '#ff8a3d' : '#3fe0c5' }};"></i></div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </x-card>
+
     <!-- Assigned Students Roster Section -->
     <div class="mb-12">
         <div class="flex items-center justify-between mb-5">
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Assigned Students</h2>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-gray-900 uppercase tracking-[.02em]">Assigned Students</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Students enrolled in your software testing class.</p>
             </div>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+            <span class="inline-flex items-center px-3 py-1 rounded-sm text-xs font-semibold bg-indigo-50 text-indigo-700">
                 {{ count($students) }} {{ Str::plural('Student', count($students)) }}
             </span>
         </div>
 
         @if (count($students) === 0)
             <x-card class="py-12 text-center border-dashed border-2 border-gray-200">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -175,14 +197,14 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50/75">
                             <tr>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Student Name</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Email Address</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Recorded Sessions</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Last Active</th>
-                                <th scope="col" class="px-6 py-3.5 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Student Name</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Email Address</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Recorded Sessions</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Last Active</th>
+                                <th scope="col" class="px-6 py-3.5 text-right font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 bg-white">
+                        <tbody class="divide-y divide-gray-100 bg-transparent">
                             @foreach ($students as $student)
                                 <tr class="hover:bg-gray-50/60 transition">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
@@ -191,6 +213,12 @@
                                                 {{ strtoupper(substr($student['name'], 0, 1)) }}
                                             </div>
                                             <span>{{ $student['name'] }}</span>
+                                            @if (isset($studentMeta[$student['id']]))
+                                                <span class="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-amber-500/50 text-amber-500">{{ $studentMeta[$student['id']]['rank'] }}</span>
+                                                @if ($studentMeta[$student['id']]['weakest'])
+                                                    <span class="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-rose-500/40 text-rose-500" title="Weakest concept">weak: {{ $studentMeta[$student['id']]['weakest'] }}</span>
+                                                @endif
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -204,11 +232,11 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
                                         @if ($student['session_count'] > 0)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                                                 Active Learner
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
                                                 No sessions recorded
                                             </span>
                                         @endif
@@ -226,7 +254,7 @@
                     <x-card class="p-5">
                         <div class="flex items-start justify-between gap-2 mb-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">
+                                <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">
                                     {{ strtoupper(substr($student['name'], 0, 1)) }}
                                 </div>
                                 <div>
@@ -235,11 +263,11 @@
                                 </div>
                             </div>
                             @if ($student['session_count'] > 0)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
                                     Active
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
                                     No sessions
                                 </span>
                             @endif
@@ -259,7 +287,7 @@
     <div x-data="{ activeFilter: 'all' }">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Student Sessions</h2>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-gray-900 uppercase tracking-[.02em]">Student Sessions</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Recorded escape room runs across assigned students.</p>
             </div>
 
@@ -268,29 +296,29 @@
                 <button
                     type="button"
                     @click="activeFilter = 'all'"
-                    :class="activeFilter === 'all' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    :class="activeFilter === 'all' ? 'bg-indigo-600 text-slate-50 shadow-xs' : 'bg-chamber-800 text-gray-700 hover:bg-gray-100 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">
                     All ({{ count($sessions) }})
                 </button>
                 <button
                     type="button"
                     @click="activeFilter = 'in_progress'"
-                    :class="activeFilter === 'in_progress' ? 'bg-blue-600 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    :class="activeFilter === 'in_progress' ? 'bg-blue-600 text-slate-50 shadow-xs' : 'bg-chamber-800 text-gray-700 hover:bg-gray-100 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">
                     In Progress ({{ $overview['in_progress_count'] }})
                 </button>
                 <button
                     type="button"
                     @click="activeFilter = 'waiting'"
-                    :class="activeFilter === 'waiting' ? 'bg-amber-500 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    :class="activeFilter === 'waiting' ? 'bg-amber-500 text-slate-50 shadow-xs' : 'bg-chamber-800 text-gray-700 hover:bg-gray-100 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">
                     Waiting ({{ $overview['waiting_count'] }})
                 </button>
                 <button
                     type="button"
                     @click="activeFilter = 'finished'"
-                    :class="activeFilter === 'finished' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                    :class="activeFilter === 'finished' ? 'bg-emerald-600 text-slate-50 shadow-xs' : 'bg-chamber-800 text-gray-700 hover:bg-gray-100 border border-gray-200'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">
                     Finished ({{ $overview['finished_count'] }})
                 </button>
             </div>
@@ -298,7 +326,7 @@
 
         @if (count($sessions) === 0)
             <x-card class="py-12 text-center border-dashed border-2 border-gray-200">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -313,15 +341,15 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50/75">
                             <tr>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Date</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Student</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Escape Room</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Score</th>
-                                <th scope="col" class="px-6 py-3.5 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Report</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Student</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Escape Room</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3.5 text-left font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Score</th>
+                                <th scope="col" class="px-6 py-3.5 text-right font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Report</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 bg-white">
+                        <tbody class="divide-y divide-gray-100 bg-transparent">
                             @foreach ($sessions as $session)
                                 <tr
                                     x-show="activeFilter === 'all' || activeFilter === '{{ $session['status'] }}'"

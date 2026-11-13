@@ -176,6 +176,25 @@
         @endif
     </x-card>
 
+    <!-- Common misconceptions (named from the wrong answers) -->
+    <x-card class="mb-10" title="Common misconceptions" description="What your students' wrong answers have in common. Use these to decide what to teach next.">
+        @if (empty($misconceptions))
+            <p class="text-sm text-gray-500">No wrong answers recorded yet. They appear once the headset game sends them.</p>
+        @else
+            <ul class="space-y-3 list-none p-0 m-0">
+                @foreach ($misconceptions as $m)
+                    <li class="flex flex-wrap justify-between gap-2">
+                        <span>
+                            <span class="block text-gray-900 font-semibold">{{ $m['label'] }}</span>
+                            <span class="block text-sm text-gray-500">{{ $m['advice'] }}</span>
+                        </span>
+                        <span class="font-mono text-xs text-amber-500 whitespace-nowrap">{{ $m['concept'] }} &middot; {{ $m['count'] }}x</span>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-card>
+
     <!-- Assigned Students Roster Section -->
     <div class="mb-12">
         <div class="flex items-center justify-between mb-5">

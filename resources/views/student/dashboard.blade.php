@@ -149,6 +149,19 @@
         @endif
     </x-card>
 
+    @if (!empty($profile['misconceptions']))
+        <x-card class="mb-10" title="Mistakes to fix" description="Patterns we noticed in your wrong answers, and how to fix them.">
+            <ul class="space-y-3 list-none p-0 m-0">
+                @foreach (array_slice($profile['misconceptions'], 0, 3) as $m)
+                    <li>
+                        <span class="block text-gray-900 font-semibold">{{ $m['label'] }} <span class="font-mono text-xs text-amber-500">&middot; {{ $m['concept'] }}</span></span>
+                        <span class="block text-sm text-gray-500">{{ $m['advice'] }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+    @endif
+
     <!-- Available Escape Rooms Section -->
     <div id="rooms" class="mb-12 scroll-mt-24">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">

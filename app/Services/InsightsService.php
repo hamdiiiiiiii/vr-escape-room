@@ -109,6 +109,7 @@ class InsightsService
             'room_status' => $this->roomStatus($sessions),
             'concepts' => $this->conceptStats($results),
             'weak_points' => $this->weakPoints($results),
+            'misconceptions' => app(MisconceptionService::class)->detect($results),
         ];
     }
 
@@ -129,6 +130,8 @@ class InsightsService
             'weak_threshold' => self::WEAK_BELOW,
             'concepts' => $p['concepts'],
             'weak_points' => $p['weak_points'],
+            // Named mistakes found from the wrong answers (fixed rules, no AI needed).
+            'misconceptions' => $p['misconceptions'],
             // Learner model (Bayesian Knowledge Tracing) and recommender.
             'mastery' => app(LearnerModelService::class)->masteryFor($student),
             'recommendations' => app(LearnerModelService::class)->recommend($student),
@@ -273,6 +276,20 @@ class InsightsService
      *
      * @return array<int, array<string, mixed>>
      */
+    /** The most common misconceptions across the instructor's students. */
+    public function classMisconceptions(User $instructor, int $limit = 5): array
+    {
+        $ids = User::where('instructor_id', $instructor->id)->pluck('id');
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $results = PuzzleResult::whereNotNull('wrong_answers')
+            ->whereHas('gameSession', fn ($q) => $q->whereIn('user_id', $ids))->get();
+
+        return array_slice(app(MisconceptionService::class)->detect($results), 0, $limit);
+    }
+
     public function classStuck(User $instructor): array
     {
         $ids = User::where('instructor_id', $instructor->id)->pluck('id');
@@ -353,6 +370,7 @@ class InsightsService
                 'attempts' => (int) $r->attempts,
                 'solved' => (bool) $r->solved,
                 'wrong' => collect($r->wrong_answers ?? [])->map(fn ($a) => $this->formatAnswer($a))->all(),
+                'misconceptions' => app(MisconceptionService::class)->labelsFor($r),
             ];
         })->all();
     }

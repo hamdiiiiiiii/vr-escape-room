@@ -146,7 +146,7 @@
                         @foreach ($puzzleLog as $row)
                             <tr>
                                 <td class="px-5 py-3 font-mono text-gray-500">{{ $row['stage'] }}</td>
-                                <td class="px-5 py-3 text-gray-900">{{ $row['title'] }}<br><span class="text-xs text-gray-500">{{ $row['type'] }}@if (!empty($row['wrong'])) &middot; tried: <span class="text-rose-500">{{ implode(', ', $row['wrong']) }}</span>@endif</span></td>
+                                <td class="px-5 py-3 text-gray-900">{{ $row['title'] }}<br><span class="text-xs text-gray-500">{{ $row['type'] }}@if (!empty($row['wrong'])) &middot; tried: <span class="text-rose-500">{{ implode(', ', $row['wrong']) }}</span>@endif @if (!empty($row['misconceptions'])) &middot; <span class="text-amber-500">{{ implode('; ', $row['misconceptions']) }}</span>@endif</span></td>
                                 <td class="px-5 py-3 font-mono">{{ $row['time'] }}</td>
                                 <td class="px-5 py-3">
                                     <div class="hud-bar !h-2"><i style="width: {{ $row['bar'] }}%; background: {{ $row['vs_class'] === 'slower' ? '#ff8a3d' : ($row['vs_class'] === 'faster' ? '#4ade80' : '#3fe0c5') }};"></i></div>

@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\ApprovedPuzzlesApiController;
 use App\Http\Controllers\Api\StudentInsightsApiController;
+use App\Http\Controllers\GeneratedPuzzleController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -35,6 +37,12 @@ Route::middleware(['auth', 'role:instructor'])->group(function () {
         ->name('instructor.dashboard');
     Route::get('/instructor/content-pack', [InstructorController::class, 'contentPack'])
         ->name('instructor.content-pack');
+    Route::post('/instructor/generated-puzzles', [GeneratedPuzzleController::class, 'store'])
+        ->name('instructor.generated-puzzles.store');
+    Route::post('/instructor/generated-puzzles/{id}/approve', [GeneratedPuzzleController::class, 'approve'])
+        ->whereNumber('id')->name('instructor.generated-puzzles.approve');
+    Route::post('/instructor/generated-puzzles/{id}/reject', [GeneratedPuzzleController::class, 'reject'])
+        ->whereNumber('id')->name('instructor.generated-puzzles.reject');
 });
 
 Route::middleware('auth')->group(function () {
@@ -45,6 +53,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/api/students/{id}/weak-points', [StudentInsightsApiController::class, 'weakPoints'])
         ->whereNumber('id')->name('api.students.weak-points');
+
+    Route::get('/api/students/{id}/puzzles', [ApprovedPuzzlesApiController::class, 'show'])
+        ->whereNumber('id')->name('api.students.puzzles');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

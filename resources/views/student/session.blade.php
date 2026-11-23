@@ -118,21 +118,33 @@
           
         }"
         class="max-w-3xl mx-auto space-y-6">
+        <!-- Progress steps (visual) -->
+        <ol aria-label="Steps" class="flex flex-wrap gap-2.5 font-mono text-[13px] list-none p-0 m-0">
+            @foreach (['Pick a room', 'Enter code in headset', 'Play'] as $i => $label)
+                <li class="flex items-center gap-2.5 px-3.5 py-2 rounded-full border"
+                    :class="{{ $i }} === (status === 'waiting' ? 1 : 2) ? 'border-amber-500 text-gray-900' : ({{ $i }} < (status === 'waiting' ? 1 : 2) ? 'border-gray-200 text-gray-500' : 'border-gray-200 text-gray-500')">
+                    <span class="w-[22px] h-[22px] rounded-full text-chamber-950 font-semibold text-xs grid place-items-center"
+                          :class="{{ $i }} < (status === 'waiting' ? 1 : 2) ? 'bg-emerald-500' : ({{ $i }} === (status === 'waiting' ? 1 : 2) ? 'bg-amber-500' : 'bg-gray-300')"
+                          x-text="{{ $i }} < (status === 'waiting' ? 1 : 2) ? '✓' : '{{ $i + 1 }}'">{{ $i + 1 }}</span>
+                    {{ $label }}
+                </li>
+            @endforeach
+        </ol>
 
         <!-- Top Overview Header Card -->
         <x-card class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Mission Session</span>
-                <h2 class="text-xl font-black text-gray-900 mt-0.5">Session #{{ $session['id'] }}</h2>
+                <span class="font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wider">Mission Session</span>
+                <h2 class="text-xl font-bold text-gray-900 mt-0.5">Session #{{ $session['id'] }}</h2>
             </div>
 
             <div class="flex items-center gap-3">
                 <!-- Reconnecting indicator -->
                 <span
                     x-show="isReconnecting"
-                    class="text-xs text-amber-700 font-semibold inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200"
+                    class="text-xs text-amber-700 font-semibold inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-amber-50 border border-amber-200"
                     style="display: none;">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span class="w-1.5 h-1.5 rounded-sm bg-amber-500 animate-pulse"></span>
                     Reconnecting...
                 </span>
 
@@ -159,9 +171,9 @@
 
         <!-- STATE 1: WAITING (Code & Countdown) -->
         <div x-show="status === 'waiting'" @if($session['status'] !== 'waiting') style="display: none;" @endif>
-            <x-card class="text-center py-8 sm:py-10 border-t-4 border-t-indigo-600">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+            <x-card class="hud-panel-hot text-center py-8 sm:py-10 overflow-hidden relative"><div class="hud-hazard absolute top-0 inset-x-0 h-3" aria-hidden="true"></div><div class="pt-3"></div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                    <span class="w-2 h-2 rounded-sm bg-amber-500 animate-ping"></span>
                     Waiting for VR Keypad Entry
                 </span>
 
@@ -172,8 +184,8 @@
 
                 <!-- Big 6-Digit Code Box -->
                 <div class="my-6 max-w-sm mx-auto">
-                    <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 sm:p-8 shadow-inner text-center">
-                        <span class="font-mono text-4xl sm:text-6xl font-black tracking-wider sm:tracking-widest text-indigo-600 select-all block break-all">
+                    <div class="bg-chamber-950 border-2 border-amber-500 rounded-xl p-4 sm:p-8 text-center shadow-[inset_0_0_30px_#ff8a3d1f,0_0_30px_#ff8a3d2e]">
+                        <span class="font-mono text-4xl sm:text-5xl font-bold tracking-[.18em] pl-[.18em] text-amber-500 [text-shadow:0_0_16px_#ff8a3d99] select-all block whitespace-nowrap">
                             {{ $session['code'] }}
                         </span>
                     </div>
@@ -181,20 +193,28 @@
 
                 <!-- Short Steps -->
                 <div class="max-w-md mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-                    <div class="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100">
-                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                    <div class="flex items-center gap-3 p-3.5 rounded-lg bg-gray-50 border border-gray-100">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-slate-50 text-xs font-bold flex items-center justify-center shrink-0">1</span>
                         <p class="text-xs sm:text-sm font-semibold text-gray-800 leading-snug">1. Put on the headset.</p>
                     </div>
-                    <div class="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100">
-                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                    <div class="flex items-center gap-3 p-3.5 rounded-lg bg-gray-50 border border-gray-100">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-slate-50 text-xs font-bold flex items-center justify-center shrink-0">2</span>
                         <p class="text-xs sm:text-sm font-semibold text-gray-800 leading-snug">2. Type this code on the keypad.</p>
                     </div>
+                </div>
+
+                <!-- In the headset -->
+                <div class="max-w-md mx-auto mt-4 text-left p-4 rounded-lg border border-gray-100 bg-chamber-950/60">
+                    <p class="hud-eyebrow mb-2">// in the headset</p>
+                    <p class="text-sm text-gray-700 leading-7"><span class="font-mono text-amber-500">01</span>&nbsp; Open BugHunt VR on the headset</p>
+                    <p class="text-sm text-gray-700 leading-7"><span class="font-mono text-amber-500">02</span>&nbsp; Point at the keypad on the door</p>
+                    <p class="text-sm text-gray-700 leading-7"><span class="font-mono text-amber-500">03</span>&nbsp; Enter the 6 digits and press &#10003;</p>
                 </div>
 
                 <!-- 10-Minute Countdown Display -->
                 <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center justify-center gap-1.5 text-center">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Code Expiration Countdown</span>
-                    <div class="inline-flex items-center gap-2 font-mono text-2xl sm:text-3xl font-black text-gray-800">
+                    <div class="inline-flex items-center gap-2 font-mono text-2xl sm:text-3xl font-bold text-gray-800">
                         <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -212,18 +232,18 @@
         <!-- STATE 2: IN_PROGRESS -->
         <div x-show="status === 'in_progress'" @if($session['status'] !== 'in_progress') style="display: none;" @endif>
             <x-card class="text-center py-10 sm:py-12 border-t-4 border-t-blue-500">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <h3 class="text-2xl font-black text-gray-900">You are in the room! Play in VR</h3>
+                <h3 class="text-2xl font-bold text-gray-900">You are in the room! Play in VR</h3>
                 <p class="text-sm text-gray-600 mt-2 max-w-md mx-auto">
                     Your VR headset is connected to this escape room session. Wear your headset and start finding testing bugs!
                 </p>
-                <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-sm bg-blue-500 animate-ping"></span>
                     Escape Room In Progress
                 </div>
             </x-card>
@@ -232,12 +252,12 @@
         <!-- STATE 3: FINISHED -->
         <div x-show="status === 'finished'" @if($session['status'] !== 'finished') style="display: none;" @endif>
             <x-card class="text-center py-10 sm:py-12 border-t-4 border-t-emerald-500">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <h3 class="text-2xl font-black text-gray-900">Session Completed!</h3>
+                <h3 class="text-2xl font-bold text-gray-900">Session Completed!</h3>
                 <p class="text-sm text-gray-600 mt-2 max-w-md mx-auto">
                     Great job! You have escaped the room and completed software testing puzzles. Your final evaluation report is ready.
                 </p>
@@ -254,12 +274,12 @@
         <!-- STATE 4: EXPIRED -->
         <div x-show="status === 'expired'" @if($session['status'] !== 'expired') style="display: none;" @endif>
             <x-card class="text-center py-10 sm:py-12 border-t-4 border-t-gray-400">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 text-gray-600 flex items-center justify-center shadow-xs">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shadow-xs">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <h3 class="text-2xl font-black text-gray-900">This code has expired</h3>
+                <h3 class="text-2xl font-bold text-gray-900">This code has expired</h3>
                 <p class="text-sm text-gray-500 mt-2 max-w-md mx-auto">
                     The 10-minute countdown window passed before the code was entered on the VR keypad. Click below to generate a fresh code!
                 </p>

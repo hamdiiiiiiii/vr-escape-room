@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-200/80 sticky top-0 z-50 shadow-xs">
+<nav x-data="{ open: false }" class="bg-chamber-950/85 backdrop-blur border-b border-gray-200 sticky top-0 z-50">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -13,16 +13,20 @@
                 <div class="hidden sm:flex sm:items-center sm:space-x-4">
                     @if (Auth::user()?->isInstructor())
                         <a href="{{ route('instructor.dashboard') }}"
-                           class="px-3.5 py-2 rounded-xl text-sm font-semibold transition {{ request()->routeIs('instructor.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
+                           class="px-3.5 py-2 font-mono text-xs uppercase tracking-wider font-semibold transition border-b-2 {{ request()->routeIs('instructor.dashboard') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300' }}">
                             {{ __('Instructor Dashboard') }}
+                        </a>
+                        <a href="{{ route('instructor.content-pack') }}"
+                           class="px-3.5 py-2 font-mono text-xs uppercase tracking-wider font-semibold transition border-b-2 {{ request()->routeIs('instructor.content-pack') ? 'border-amber-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300' }}">
+                            {{ __('Content Pack') }}
                         </a>
                     @else
                         <a href="{{ route('student.dashboard') }}"
-                           class="px-3.5 py-2 rounded-xl text-sm font-semibold transition {{ request()->routeIs('student.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
+                           class="px-3.5 py-2 font-mono text-xs uppercase tracking-wider font-semibold transition border-b-2 {{ request()->routeIs('student.dashboard') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300' }}">
                             {{ __('Student Dashboard') }}
                         </a>
                         <a href="{{ route('student.dashboard') }}#past-sessions"
-                           class="px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition">
+                           class="px-3.5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider font-semibold text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition">
                             {{ __('My Sessions') }}
                         </a>
                     @endif
@@ -34,15 +38,15 @@
                 <div x-data="{ userMenuOpen: false }" @click.outside="userMenuOpen = false" class="relative">
                     <button @click="userMenuOpen = ! userMenuOpen"
                             type="button"
-                            class="inline-flex items-center gap-2.5 min-h-[44px] px-3.5 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200/80 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                            class="inline-flex items-center gap-2.5 min-h-[44px] px-3.5 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200/80 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
                             aria-expanded="false"
                             :aria-expanded="userMenuOpen.toString()">
-                        <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-500 border border-indigo-500 font-display font-bold text-xs flex items-center justify-center shrink-0">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
                         <div class="text-left">
                             <div class="text-xs font-semibold text-gray-800 leading-tight">{{ Auth::user()->name }}</div>
-                            <span class="inline-block text-[10px] font-medium tracking-wide uppercase {{ Auth::user()->isInstructor() ? 'text-purple-600' : 'text-indigo-600' }}">
+                            <span class="inline-block text-[10px] font-medium tracking-wide uppercase {{ Auth::user()->isInstructor() ? 'text-amber-500' : 'text-indigo-500' }}">
                                 {{ Auth::user()->role }}
                             </span>
                         </div>
@@ -59,7 +63,7 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black/5 divide-y divide-gray-100 focus:outline-none z-50 py-1"
+                         class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-chamber-800 ring-1 ring-indigo-500/30 divide-y divide-gray-100 focus:outline-none z-50 py-1"
                          style="display: none;">
                         <div class="py-1">
                             <a href="{{ route('profile.edit') }}"
@@ -74,7 +78,7 @@
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
-                                        class="w-full flex items-center min-h-[44px] px-4 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition text-left cursor-pointer">
+                                        class="w-full flex items-center min-h-[44px] px-4 py-2 text-sm font-medium text-gray-700 hover:bg-rose-50 hover:text-rose-500 transition text-left cursor-pointer">
                                     <svg class="w-4 h-4 mr-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
@@ -90,7 +94,7 @@
             <div class="flex items-center sm:hidden">
                 <button @click="open = ! open"
                         type="button"
-                        class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                        class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
                         aria-label="Toggle navigation menu">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -102,10 +106,10 @@
     </div>
 
     <!-- Mobile Drawer Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-5 space-y-3">
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden border-t border-gray-100 bg-chamber-900 px-4 pt-3 pb-5 space-y-3">
         <!-- User Pill -->
-        <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+        <div class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+            <div class="w-9 h-9 rounded-lg bg-indigo-500 text-slate-50 font-bold text-sm flex items-center justify-center shadow-xs">
                 {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
             </div>
             <div>
@@ -121,17 +125,21 @@
         <div class="space-y-1">
             @if (Auth::user()?->isInstructor())
                 <a href="{{ route('instructor.dashboard') }}"
-                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-xl text-base font-semibold transition {{ request()->routeIs('instructor.dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
+                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-base font-semibold transition {{ request()->routeIs('instructor.dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
                     {{ __('Instructor Dashboard') }}
+                </a>
+                <a href="{{ route('instructor.content-pack') }}"
+                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-base font-semibold transition {{ request()->routeIs('instructor.content-pack') ? 'bg-indigo-50 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}">
+                    {{ __('Content Pack') }}
                 </a>
             @else
                 <a href="{{ route('student.dashboard') }}"
-                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-xl text-base font-semibold transition {{ request()->routeIs('student.dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
+                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-base font-semibold transition {{ request()->routeIs('student.dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
                     {{ __('Student Dashboard') }}
                 </a>
                 <a href="{{ route('student.dashboard') }}#past-sessions"
                    @click="open = false"
-                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-xl text-base font-semibold text-gray-700 hover:bg-gray-50 transition">
+                   class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-base font-semibold text-gray-700 hover:bg-gray-50 transition">
                     {{ __('My Sessions') }}
                 </a>
             @endif
@@ -140,7 +148,7 @@
         <!-- Mobile Profile & Log out Actions -->
         <div class="pt-2 border-t border-gray-100 space-y-1">
             <a href="{{ route('profile.edit') }}"
-               class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-xl text-base font-semibold transition {{ request()->routeIs('profile.edit') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
+               class="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-base font-semibold transition {{ request()->routeIs('profile.edit') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
                 <svg class="w-5 h-5 mr-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -150,7 +158,7 @@
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                        class="w-full flex items-center justify-center min-h-[44px] gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition cursor-pointer">
+                        class="w-full flex items-center justify-center min-h-[44px] gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-rose-500 bg-rose-50 hover:bg-rose-100 transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>

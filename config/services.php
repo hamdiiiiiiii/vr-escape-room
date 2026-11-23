@@ -39,6 +39,7 @@ return [
         'model' => env('ANTHROPIC_MODEL'),
         'url' => 'https://api.anthropic.com/v1/messages',
         'timeout' => 10,
+        'generate_timeout' => 30,
     ],
 
 ];

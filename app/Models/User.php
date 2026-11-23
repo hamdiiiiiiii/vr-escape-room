@@ -63,4 +63,9 @@ use HasApiTokens, HasFactory, Notifiable;
     {
         return $this->role === 'student';
     }
+
+        public function gameSessions()
+    {
+        return $this->hasMany(GameSession::class);
+    }
 }

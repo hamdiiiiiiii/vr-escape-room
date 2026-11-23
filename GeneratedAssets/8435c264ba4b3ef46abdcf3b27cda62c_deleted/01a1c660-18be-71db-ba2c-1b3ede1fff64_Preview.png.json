@@ -1,0 +1,12 @@
+{
+    "asset": "8435c264ba4b3ef46abdcf3b27cda62c",
+    "fileName": "01a1c660-18be-71db-ba2c-1b3ede1fff64_Preview.png",
+    "prompt": "museum floor",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash-texture",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": 1019167566,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation"
+}

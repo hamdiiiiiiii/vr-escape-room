@@ -1,0 +1,12 @@
+{
+    "asset": "f22732923c79b42e7a2d33d27f7dc19f",
+    "fileName": "01a1c790-72dd-7e57-b4b9-113c539a451e_Preview.png",
+    "prompt": "vintage spooky wall",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash-texture",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": 511760121,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation"
+}

@@ -3,16 +3,24 @@
 namespace App\Services;
 
 use App\Models\GameSession;
-use App\Models\Room;
 use App\Models\User;
 
 class SessionService
 {
-    /** How long a waiting session (and its 6-digit code) stays valid. */
+    /**
+     * How long a waiting session and its six-digit code stay valid.
+     */
     public const CODE_LIFETIME_MINUTES = 10;
 
     /**
-     * @return array{session_id: int, code: string, status: string, expires_at: string}
+     * Create a database-backed session for a student.
+     *
+     * @return array{
+     *     session_id: int,
+     *     code: string,
+     *     status: string,
+     *     expires_at: string
+     * }
      */
     public function startSession(User $user, int $roomId): array
     {
@@ -26,12 +34,15 @@ class SessionService
 
         return [
             'session_id' => $session->id,
-            'code' => $session->code,
-            'status' => 'waiting',
+            'code' => (string) $session->code,
+            'status' => $session->status,
             'expires_at' => $session->expires_at->toIso8601String(),
         ];
     }
 
+    /**
+     * Get a session and its room information.
+     */
     public function getSession(int|string $id): ?array
     {
         $session = GameSession::with('room')->find((int) $id);
@@ -47,13 +58,19 @@ class SessionService
             'room_name' => $session->room?->name ?? 'Unknown room',
             'code' => (string) $session->code,
             'status' => $this->effectiveStatus($session),
-            'created_at' => $session->created_at->toIso8601String(),
-            'expires_at' => $session->expires_at->toIso8601String(),
+            'created_at' => $session->created_at?->toIso8601String(),
+            'expires_at' => $session->expires_at?->toIso8601String(),
         ];
     }
 
     /**
-     * @return array{session_id: int, status: string, expires_at: string}|null
+     * Get the current status of a session.
+     *
+     * @return array{
+     *     session_id: int,
+     *     status: string,
+     *     expires_at: string|null
+     * }|null
      */
     public function getStatus(int|string $id): ?array
     {
@@ -66,59 +83,90 @@ class SessionService
         return [
             'session_id' => $session->id,
             'status' => $this->effectiveStatus($session),
-            'expires_at' => $session->expires_at->toIso8601String(),
+            'expires_at' => $session->expires_at?->toIso8601String(),
         ];
     }
 
     /**
-     * DEV ONLY, will be removed. Pretend the VR game accepted the code.
-     */
-    
-
-    /**
-     * @return array<int, array{id: int, room_id: int, room_name: string, date: string, status: string, score: int|null}>
+     * Get the student's previous sessions.
+     *
+     * @return array<int, array{
+     *     id: int,
+     *     room_id: int,
+     *     room_name: string,
+     *     date: string,
+     *     status: string,
+     *     score: int|float|null
+     * }>
      */
     public function getPastSessions(User $user): array
     {
         return GameSession::with(['room', 'report'])
             ->where('user_id', $user->id)
             ->get()
-            ->sortByDesc(fn (GameSession $s) => $s->started_at ?? $s->created_at)
-            ->map(fn (GameSession $s) => [
-                'id' => $s->id,
-                'room_id' => $s->room_id,
-                'room_name' => $s->room?->name ?? 'Unknown room',
-                'date' => ($s->started_at ?? $s->created_at)->format('M d, Y'),
-                'status' => $this->effectiveStatus($s),
-                'score' => $s->report?->session_score,
+            ->sortByDesc(
+                fn (GameSession $session) =>
+                    $session->started_at ?? $session->created_at
+            )
+            ->map(fn (GameSession $session) => [
+                'id' => $session->id,
+                'room_id' => $session->room_id,
+                'room_name' => $session->room?->name ?? 'Unknown room',
+                'date' => (
+                    $session->started_at ?? $session->created_at
+                )?->format('M d, Y'),
+                'status' => $this->effectiveStatus($session),
+                'score' => $session->report?->session_score,
             ])
             ->values()
             ->all();
     }
 
-    /** "waiting" becomes "expired" once expires_at has passed (not stored). */
+    /**
+     * A waiting session is considered expired when its expiry time passes.
+     *
+     * This does not change the stored database status.
+     */
     private function effectiveStatus(GameSession $session): string
     {
-        if ($session->status === 'waiting' && now()->greaterThanOrEqualTo($session->expires_at)) {
+        if (
+            $session->status === 'waiting'
+            && $session->expires_at !== null
+            && now()->greaterThanOrEqualTo($session->expires_at)
+        ) {
             return 'expired';
         }
 
         return $session->status;
     }
 
-    /** 6-digit, zero padded code that no active session is using. */
+    /**
+     * Generate a six-digit code that is not currently in use by an active
+     * or unexpired waiting session.
+     */
     private function generateUniqueCode(): string
     {
-        $activeCodes = GameSession::whereNotNull('code')
-            ->where(function ($q) {
-                $q->where('status', 'in_progress')
-                    ->orWhere(fn ($q2) => $q2->where('status', 'waiting')->where('expires_at', '>', now()));
+        $activeCodes = GameSession::query()
+            ->whereNotNull('code')
+            ->where(function ($query) {
+                $query->where('status', 'in_progress')
+                    ->orWhere(function ($waitingQuery) {
+                        $waitingQuery
+                            ->where('status', 'waiting')
+                            ->where('expires_at', '>', now());
+                    });
             })
             ->pluck('code')
+            ->map(fn ($code) => (string) $code)
             ->all();
 
         do {
-            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $code = str_pad(
+                (string) random_int(0, 999999),
+                6,
+                '0',
+                STR_PAD_LEFT
+            );
         } while (in_array($code, $activeCodes, true));
 
         return $code;

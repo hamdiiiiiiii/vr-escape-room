@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\ApprovedPuzzlesApiController;
+use App\Http\Controllers\Api\StudentInsightsApiController;
+use App\Http\Controllers\ClassBriefingController;
+use App\Http\Controllers\GeneratedPuzzleController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ReportApiController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,23 +31,35 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 
     Route::get('/sessions/{id}', [StudentController::class, 'showSession'])->name('student.session.show');
     Route::get('/sessions/{id}/status', [StudentController::class, 'sessionStatus'])->name('student.session.status');
-       
-
 });
 
 Route::middleware(['auth', 'role:instructor'])->group(function () {
-    Route::get('/instructor/dashboard', function () {
-        return view('instructor.dashboard');
-    })->name('instructor.dashboard');
-    
+    Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])
+        ->name('instructor.dashboard');
+    Route::get('/instructor/content-pack', [InstructorController::class, 'contentPack'])
+        ->name('instructor.content-pack');
+    Route::post('/instructor/class-briefing', [ClassBriefingController::class, 'write'])
+        ->name('instructor.class-briefing.write');
+    Route::post('/instructor/generated-puzzles', [GeneratedPuzzleController::class, 'store'])
+        ->name('instructor.generated-puzzles.store');
+    Route::post('/instructor/generated-puzzles/{id}/approve', [GeneratedPuzzleController::class, 'approve'])
+        ->whereNumber('id')->name('instructor.generated-puzzles.approve');
+    Route::post('/instructor/generated-puzzles/{id}/reject', [GeneratedPuzzleController::class, 'reject'])
+        ->whereNumber('id')->name('instructor.generated-puzzles.reject');
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/reports/{id}', function ($id) {
-        return view('reports.show', ['reportId' => $id]);
-    })->name('reports.show');
-   Route::get('/api/sessions/{id}/report', [ReportApiController::class, 'show'])
+    Route::get('/reports/{id}', [ReportController::class, 'show'])->name('reports.show');
+
+    Route::get('/api/sessions/{id}/report', [ReportApiController::class, 'show'])
         ->whereNumber('id')->name('api.sessions.report');
+
+    Route::get('/api/students/{id}/weak-points', [StudentInsightsApiController::class, 'weakPoints'])
+        ->whereNumber('id')->name('api.students.weak-points');
+
+    Route::get('/api/students/{id}/puzzles', [ApprovedPuzzlesApiController::class, 'show'])
+        ->whereNumber('id')->name('api.students.puzzles');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });

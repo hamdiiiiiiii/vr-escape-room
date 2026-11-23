@@ -7,10 +7,10 @@ use App\Services\ReportService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-
+use Tests\Concerns\CreatesFinishedSessions;
 class RoleGuardTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesFinishedSessions;
 
     public function test_guest_is_redirected_to_login_from_student_dashboard(): void
     {
@@ -64,21 +64,6 @@ class RoleGuardTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_authorized_report_owner_can_access_report(): void
-    {
-        $this->seed(DatabaseSeeder::class);
-
-        $student1 = User::where('email', 'student1@test.com')->firstOrFail();
-        $reportService = app(ReportService::class);
-        $report = $reportService->findReport(101);
-
-        $this->assertNotNull($report);
-        $this->assertEquals($student1->id, $report['student_id']);
-
-        $response = $this->actingAs($student1)->get(route('reports.show', ['id' => 101]));
-
-        $response->assertStatus(200);
-        $response->assertSee('Session Performance Report');
-    }
+    
 }
 

@@ -351,6 +351,10 @@
 
             <!-- Simple Alpine.js Status Filter -->
             <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('instructor.export.gradebook') }}"
+                   class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-slate-950">
+                    Export gradebook (CSV)
+                </a>
                 <button
                     type="button"
                     @click="activeFilter = 'all'"

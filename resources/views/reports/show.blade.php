@@ -1,9 +1,19 @@
 <x-app-layout>
+    <style>
+        @media print {
+            nav, .no-print, .hud-floor, footer { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            * { box-shadow: none !important; }
+        }
+    </style>
     <!-- Page Heading -->
     <x-page-heading
         title="Session Performance Report"
         :description="'Session #' . $report['id'] . ' • ' . $report['room_name'] . ' • Completed on ' . $report['date']">
         <x-slot name="actions">
+            <button type="button" onclick="window.print()" class="no-print mr-2 inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition">
+                Print / Save as PDF
+            </button>
             @if ($isInstructor)
                 <a href="{{ route('instructor.dashboard') }}">
                     <x-secondary-button type="button">
@@ -163,23 +173,68 @@
         </x-card>
     @endif
 
-    <!-- AI Analysis Section (Empty State / Friendly Message) -->
-    <x-card title="AI Tutor & Bug Hunting Analysis" description="Automated bug analysis, time-to-fix diagnostics, and personalized guidance.">
-        <div class="py-12 text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+    <!-- AI analysis -->
+    <x-card title="AI Tutor & Bug Hunting Analysis" description="Written after the session from the scores. The AI never changes the scores.">
+        @php $ai = $report['ai_analysis'] ?? null; @endphp
+        @if (is_array($ai) && ! empty($ai))
+            <div style="display:flex;flex-direction:column;gap:20px" data-testid="ai-analysis">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="font-mono text-[11px] uppercase tracking-wider text-gray-500">Level</span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-sm text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">{{ $ai['overallLevel'] ?? '' }}</span>
+                </div>
+                @if (! empty($ai['weakConcepts']))
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-wider text-gray-500 mb-2">Concepts to practise</p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($ai['weakConcepts'] as $concept)
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">{{ $concept }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                <div>
+                    <p class="font-mono text-[11px] uppercase tracking-wider text-gray-500 mb-1">{{ $isInstructor ? 'Note for the instructor' : 'Your next step' }}</p>
+                    <p class="text-sm text-gray-700 leading-relaxed">{{ $isInstructor ? ($ai['instructorNote'] ?? '') : ($ai['studentRecommendation'] ?? '') }}</p>
+                </div>
+                @if ($isInstructor && ! empty($ai['studentRecommendation']))
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-wider text-gray-500 mb-1">What the student sees</p>
+                        <p class="text-sm text-gray-600 leading-relaxed">{{ $ai['studentRecommendation'] }}</p>
+                    </div>
+                @endif
             </div>
-            <h3 class="text-base font-bold text-gray-900">AI Analysis Not Available Yet</h3>
-            <p class="text-sm text-gray-500 mt-2 max-w-lg mx-auto leading-relaxed">
-                Automated code-level bug hunting recommendations and AI tutor analysis will be available in an upcoming update once the evaluation engine is integrated.
-            </p>
-            <div class="mt-6">
-                <span class="inline-flex items-center px-3 py-1 rounded-sm text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                    Engine Status: Scheduled for Future Phase
-                </span>
+        @else
+            <div class="py-10 text-center">
+                <h3 class="text-base font-bold text-gray-900">No AI analysis for this run</h3>
+                <p class="text-sm text-gray-500 mt-2 max-w-lg mx-auto leading-relaxed">
+                    The AI note is optional. It appears when the AI service is switched on and answers in time. The scores above do not depend on it.
+                </p>
             </div>
-        </div>
+        @endif
     </x-card>
+
+    <!-- What happened in the room -->
+    @if (! empty($report['events']))
+        <x-card title="Session timeline" description="What the game reported during the run." class="mt-8">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" data-testid="timeline">
+                    <thead>
+                        <tr class="text-left font-mono text-[11px] uppercase tracking-wider text-gray-500">
+                            <th class="py-2 pr-4">Time</th><th class="py-2 pr-4">Event</th><th class="py-2 pr-4">Puzzle</th><th class="py-2">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($report['events'] as $event)
+                            <tr class="border-t border-gray-200">
+                                <td class="py-2 pr-4 font-mono">{{ $event['time'] }}</td>
+                                <td class="py-2 pr-4 capitalize">{{ $event['type'] }}</td>
+                                <td class="py-2 pr-4 font-mono text-xs">{{ $event['puzzle'] ?? '' }}</td>
+                                <td class="py-2 text-gray-500">{{ $event['note'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </x-card>
+    @endif
 </x-app-layout>

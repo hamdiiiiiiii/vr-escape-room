@@ -26,6 +26,11 @@ class GameSession extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function events()
+    {
+        return $this->hasMany(SessionEvent::class);
+    }
+
         public function puzzleResults()
     {
         return $this->hasMany(PuzzleResult::class);

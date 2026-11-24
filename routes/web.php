@@ -43,6 +43,8 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 Route::middleware(['auth', 'role:instructor'])->group(function () {
     Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])
         ->name('instructor.dashboard');
+    Route::get('/instructor/export/gradebook', [InstructorController::class, 'exportGradebook'])
+        ->name('instructor.export.gradebook');
     Route::get('/instructor/content-pack', [InstructorController::class, 'contentPack'])
         ->name('instructor.content-pack');
     Route::post('/instructor/class-briefing', [ClassBriefingController::class, 'write'])

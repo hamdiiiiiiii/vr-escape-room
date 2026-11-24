@@ -10,6 +10,7 @@ use App\Services\PuzzleGeneratorService;
 use App\Services\InstructorService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InstructorController extends Controller
 {
@@ -51,5 +52,40 @@ class InstructorController extends Controller
             'students' => User::where('role', 'student')->where('instructor_id', $request->user()->id)->orderBy('name')->get(['id', 'name']),
             'aiReady' => $generator->isConfigured(),
         ]);
+    }
+
+    /**
+     * Gradebook CSV: one row per finished session of the instructor's own students.
+     */
+    public function exportGradebook(Request $request): StreamedResponse
+    {
+        $studentIds = \App\Models\User::where('instructor_id', $request->user()->id)->pluck('id');
+
+        $sessions = \App\Models\GameSession::query()
+            ->with(['user:id,name,email', 'room:id,name', 'report', 'puzzleResults'])
+            ->whereIn('user_id', $studentIds)
+            ->where('status', 'finished')
+            ->orderBy('user_id')->orderBy('ended_at')
+            ->get();
+
+        // A cell that starts with = + - @ could run as a formula in Excel, so it gets a leading apostrophe.
+        $safe = fn ($v) => is_string($v) && preg_match('/^[=+\-@\t\r]/', $v) ? "'".$v : $v;
+
+        return response()->streamDownload(function () use ($sessions, $safe) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF"); // so Excel reads UTF-8 names correctly
+            fputcsv($out, ['Student', 'Email', 'Room', 'Date', 'Score', 'Level', 'Puzzles solved', 'Hints used', 'Time (seconds)']);
+            foreach ($sessions as $s) {
+                fputcsv($out, [
+                    $safe($s->user?->name), $safe($s->user?->email), $safe($s->room?->name),
+                    ($s->ended_at ?? $s->created_at)?->format('Y-m-d'),
+                    $s->report?->session_score, $s->report?->level,
+                    $s->puzzleResults->where('solved', true)->count(),
+                    $s->puzzleResults->sum('hints_used'),
+                    $s->report?->total_time_seconds,
+                ]);
+            }
+            fclose($out);
+        }, 'gradebook-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

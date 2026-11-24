@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\GameSession;
 use App\Models\GeneratedPuzzle;
+use App\Models\SessionEvent;
 use App\Services\HintTutorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +46,8 @@ class HintApiController extends Controller
         }
 
         abort_if($puzzle === null, 404, 'Puzzle not found.');
+
+        SessionEvent::record($session, 'hint_requested', $data['puzzleId'], ['level' => $data['level'] ?? 0]);
 
         return response()->json($tutor->hint($puzzle, $data['wrongAnswers'] ?? [], $data['level'] ?? 0));
     }

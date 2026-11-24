@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 use App\Services\AiAnalysisService;
+use App\Services\AvatarService;
+use App\Services\SquadService;
 use App\Http\Controllers\Controller;
 use App\Models\GameSession;
 use App\Models\PuzzleResult;
@@ -13,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class SessionApiController extends Controller
 {
-      public function __construct(private ScoringService $scoring, private AiAnalysisService $ai)
+      public function __construct(private ScoringService $scoring, private AiAnalysisService $ai, private AvatarService $avatars, private SquadService $squads)
     {
     }
 
@@ -54,6 +56,8 @@ class SessionApiController extends Controller
             'sessionId' => $session->id,
             'token' => $token,
             'room' => $room,
+            'player' => $this->avatars->playerPayload($session->user),   // public name + avatar look for the game
+            'squad' => $this->squads->payload($session->user),            // 1 to 4 players, each with public name + look
         ]);
     }
 

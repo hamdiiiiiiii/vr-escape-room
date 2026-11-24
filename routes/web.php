@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ReportApiController;
 use App\Http\Controllers\Api\ApprovedPuzzlesApiController;
 use App\Http\Controllers\Api\StudentInsightsApiController;
+use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\ClassBriefingController;
 use App\Http\Controllers\GeneratedPuzzleController;
 use App\Http\Controllers\InstructorController;
@@ -28,6 +29,12 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     // Old GET link: only redirects to the dashboard.
     Route::get('/rooms/{id}/start', [StudentController::class, 'startRoom'])->name('student.start-room');
     Route::post('/rooms/{id}/start', [StudentController::class, 'createSession'])->name('student.start-room.create');
+
+    Route::get('/student/avatar', [AvatarController::class, 'show'])->name('student.avatar');
+    Route::put('/student/avatar', [AvatarController::class, 'update'])->name('student.avatar.update');
+    Route::post('/student/squad/add', [AvatarController::class, 'addPlayer'])->name('student.squad.add');
+    Route::delete('/student/squad/members/{id}', [AvatarController::class, 'removePlayer'])->whereNumber('id')->name('student.squad.remove');
+    Route::post('/student/squad/leave', [AvatarController::class, 'leaveSquad'])->name('student.squad.leave');
 
     Route::get('/sessions/{id}', [StudentController::class, 'showSession'])->name('student.session.show');
     Route::get('/sessions/{id}/status', [StudentController::class, 'sessionStatus'])->name('student.session.status');

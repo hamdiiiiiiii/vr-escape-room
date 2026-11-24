@@ -14,77 +14,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body x-data="{
-            solved: false,
-            entered: '',
-            wrong: false,
-            padShake: false,
-            hints: 0,
-            msg: '',
-            shake: false,
-            nudge: false,
-            puzzle: null,
-            puzzles: [
-                { unit: 'levels', lo: 1, hi: 5 },
-                { unit: 'stars', lo: 2, hi: 6 },
-                { unit: 'lives', lo: 3, hi: 7 },
-            ],
-            phrases: [
-                'Whoa there, tester! Crack the door code first.',
-                'Door is locked. Solve the puzzle to get the key.',
-                'No code, no entry. Solve the puzzle first!',
-                'Nice try! Real testers earn their way in.',
-            ],
-            init() {
-                this.puzzle = this.puzzles[Math.floor(Math.random() * this.puzzles.length)];
-                try { this.solved = sessionStorage.getItem('bh_gate') === '1'; } catch (e) {}
-            },
-            get answer() {
-                const p = this.puzzle;
-                return p ? '' + p.lo + p.hi + (p.lo - 1) + (p.hi + 1) : '';
-            },
-            press(d) {
-                if (this.solved || this.wrong || this.entered.length >= 4) return;
-                this.entered += d;
-                if (this.entered.length === 4) this.check();
-            },
-            back() { if (!this.wrong) this.entered = this.entered.slice(0, -1); },
-            hint() {
-                if (this.solved || this.wrong) return;
-                const ok = this.answer.startsWith(this.entered);
-                this.entered = this.answer.slice(0, ok ? this.entered.length + 1 : 1);
-                this.hints++;
-                if (this.entered.length === 4) this.check();
-            },
-            check() {
-                if (this.entered === this.answer) {
-                    this.solved = true;
-                    try { sessionStorage.setItem('bh_gate', '1'); } catch (e) {}
-                } else {
-                    this.wrong = true;
-                    this.padShake = true;
-                    setTimeout(() => { this.padShake = false; }, 650);
-                    setTimeout(() => { this.wrong = false; this.entered = ''; }, 900);
-                }
-            },
-            tryLogin(e) {
-                if (this.solved) return;
-                e.preventDefault();
-                this.msg = this.phrases[Math.floor(Math.random() * this.phrases.length)];
-                this.shake = true;
-                this.nudge = true;
-                this.$refs.puzzle && this.$refs.puzzle.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => { this.shake = false; }, 650);
-                setTimeout(() => { this.nudge = false; }, 2100);
-                clearTimeout(this._t);
-                this._t = setTimeout(() => { this.msg = ''; }, 3200);
-            }
-        }" class="font-sans antialiased bg-chamber-950 text-gray-700 min-h-screen flex flex-col">
-        <!-- Toast: shown when someone presses Log In before solving the puzzle -->
-        <div x-show="msg" x-cloak x-transition class="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-chamber-800 border border-amber-500 rounded-lg text-amber-500 font-mono text-sm shadow-glow-amber max-w-[90vw] text-center" role="status">
-            <span x-text="msg"></span>
-        </div>
-
+    <body x-data="{ solved: true }" class="font-sans antialiased bg-chamber-950 text-gray-700 min-h-screen flex flex-col">
         <!-- Top Nav -->
         <nav class="bg-chamber-950/85 backdrop-blur border-b border-gray-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -105,9 +35,8 @@
                             </x-primary-button>
                         </a>
                     @else
-                        <a href="{{ route('login') }}" @click="tryLogin($event)" :class="shake && 'hud-shake'" class="inline-block">
+                        <a href="{{ route('login') }}" class="inline-block">
                             <x-primary-button type="button">
-                                <svg x-show="!solved" x-cloak class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1" /><path d="M8 11V8a4 4 0 118 0v3" /></svg>
                                 Log In &rarr;
                             </x-primary-button>
                         </a>
@@ -149,50 +78,8 @@
                             </a>
                         </div>
                     @else
-                        <!-- Puzzle gate: crack a tiny door code to reveal the login button -->
-                        <div x-ref="puzzle" x-show="!solved" :class="nudge && 'hud-nudge'" class="mt-8 hud-panel p-5 max-w-xl">
-                            <p class="hud-eyebrow">// unlock the door &middot; crack the code</p>
-                            <p class="text-sm text-gray-700 mt-2" x-show="puzzle">
-                                A game only allows <span class="text-gray-900 font-semibold" x-text="puzzle && puzzle.unit"></span>
-                                from <strong class="text-gray-900" x-text="puzzle && puzzle.lo"></strong>
-                                to <strong class="text-gray-900" x-text="puzzle && puzzle.hi"></strong>.
-                                Fill the 4 slots to open the door:
-                            </p>
+                        <div class="mt-8">
 
-                            <div class="mt-4 grid sm:grid-cols-[1fr_auto] gap-5 items-start">
-                                <!-- Code slots -->
-                                <div :class="padShake && 'hud-shake'" class="grid grid-cols-4 gap-2">
-                                    @foreach (['Lowest allowed', 'Highest allowed', 'Just below the lowest', 'Just above the highest'] as $i => $label)
-                                        <div class="text-center">
-                                            <div class="h-14 grid place-items-center border font-mono text-2xl font-bold transition rounded-lg"
-                                                 :class="wrong ? 'border-rose-500 text-rose-500 bg-rose-50' : (entered.length === {{ $i }} ? 'border-amber-500 text-indigo-500 bg-chamber-950' : 'border-indigo-500/60 text-indigo-500 bg-chamber-950')">
-                                                <span x-text="entered[{{ $i }}] ?? ''"></span>
-                                                <span x-show="entered.length === {{ $i }} && !wrong" class="hud-cursor"></span>
-                                            </div>
-                                            <p class="mt-1.5 font-mono text-[10px] leading-tight uppercase tracking-wide text-gray-500">{{ $label }}</p>
-                                        </div>
-                                    @endforeach
-                                </div>
-
-                                <!-- Keypad -->
-                                <div class="grid grid-cols-3 gap-1.5 w-full sm:w-44">
-                                    @foreach ([1,2,3,4,5,6,7,8,9] as $n)
-                                        <button type="button" @click="press({{ $n }})" class="min-h-[44px] border border-gray-300 rounded-lg text-indigo-500 hover:border-indigo-500 hover:bg-indigo-50 active:scale-95 font-mono text-lg font-bold transition">{{ $n }}</button>
-                                    @endforeach
-                                    <button type="button" @click="back()" aria-label="Delete last digit" class="min-h-[44px] border border-gray-300 rounded-lg text-gray-500 hover:text-gray-900 font-mono text-lg transition">&larr;</button>
-                                    <button type="button" @click="press(0)" class="min-h-[44px] border border-gray-300 rounded-lg text-indigo-500 hover:border-indigo-500 hover:bg-indigo-50 active:scale-95 font-mono text-lg font-bold transition">0</button>
-                                    <button type="button" @click="hint()" class="min-h-[44px] border border-amber-500/50 rounded-lg text-amber-500 hover:bg-amber-50 font-mono text-[11px] font-bold uppercase tracking-wide transition">Hint</button>
-                                </div>
-                            </div>
-
-                            <p x-show="wrong" x-cloak class="mt-3 font-mono text-xs text-rose-500">&#10005; Wrong code. Look at the 4 labels and try again!</p>
-                            <p x-show="hints > 0 && !wrong" x-cloak class="mt-3 font-mono text-xs text-amber-500">Hint used. It fills the next correct digit for you.</p>
-                        </div>
-
-                        <div x-show="solved" x-cloak class="mt-8 hud-pop">
-                            <p class="font-mono text-sm text-emerald-500 mb-3">
-                                &#10003; Door unlocked! You just tested boundary values: the edges of the range, and the numbers just outside it.
-                            </p>
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                                 <a href="{{ route('login') }}" class="w-full sm:w-auto">
                                     <x-primary-button class="w-full sm:w-auto text-base px-8 py-3.5">

@@ -11,6 +11,7 @@ class PuzzleResult extends Model
 
     protected $casts = [
         'solved' => 'boolean',
+        'verified' => 'boolean',
         'attempts' => 'integer',
         'time_seconds' => 'integer',
         'hints_used' => 'integer',

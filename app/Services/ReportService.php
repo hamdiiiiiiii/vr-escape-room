@@ -183,6 +183,13 @@ class ReportService
 
             'concept_scores' => $conceptScores,
             'ai_analysis' => $report->ai_analysis,
+            'events' => $session->events()->orderBy('occurred_at')->orderBy('id')->limit(60)->get()
+                ->map(fn ($e) => [
+                    'time' => $e->occurred_at?->format('H:i:s') ?? '',
+                    'type' => str_replace('_', ' ', $e->type),
+                    'puzzle' => $e->puzzle_id,
+                    'note' => collect($e->payload ?? [])->map(fn ($v, $k) => $k.': '.(is_bool($v) ? ($v ? 'yes' : 'no') : (is_scalar($v) ? $v : json_encode($v))))->implode(', '),
+                ])->all(),
         ];
     }
 }

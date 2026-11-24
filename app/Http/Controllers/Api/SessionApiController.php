@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 use App\Services\AiAnalysisService;
+use App\Models\SessionEvent;
+use App\Services\AnswerCheckService;
 use App\Services\AvatarService;
 use App\Services\SquadService;
 use App\Http\Controllers\Controller;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class SessionApiController extends Controller
 {
-      public function __construct(private ScoringService $scoring, private AiAnalysisService $ai, private AvatarService $avatars, private SquadService $squads)
+      public function __construct(private ScoringService $scoring, private AiAnalysisService $ai, private AvatarService $avatars, private SquadService $squads, private AnswerCheckService $answers)
     {
     }
 
@@ -72,6 +74,12 @@ class SessionApiController extends Controller
             'attempts' => ['required', 'integer', 'min:1', 'max:3'],
             'timeSeconds' => ['required', 'integer', 'min:0', 'max:86400'],
             'hintsUsed' => ['required', 'integer', 'min:0', 'max:2'],
+            // The player's final answer. When present, the server checks it and decides "solved".
+            'answer' => ['sometimes', 'nullable', function ($attribute, $value, $fail) {
+                if ((! is_scalar($value) && ! is_array($value)) || mb_strlen(json_encode($value)) > 200) {
+                    $fail('The answer must be short text, a number or a small object.');
+                }
+            }],
             // Optional: the wrong answers the player tried (at most 3).
             // Each is a short string, a number, or a small object.
             'wrongAnswers' => ['sometimes', 'nullable', 'array', 'max:3'],
@@ -88,8 +96,22 @@ class SessionApiController extends Controller
             return response()->json(['message' => 'Session is not in progress.'], 409);
         }
 
+        $solved = (bool) $data['solved'];
+        $verified = false;
+        $puzzle = $this->answers->findPuzzle($session, $data['puzzleId']);
+
+        if ($this->answers->hasKey($puzzle)) {
+            if (array_key_exists('answer', $data) && $data['answer'] !== null) {
+                // The server's verdict replaces whatever the game claimed.
+                $solved = $this->answers->isCorrect($puzzle, $data['answer']);
+                $verified = true;
+            } elseif (config('bughunt.require_answer')) {
+                return response()->json(['message' => 'This puzzle needs the player\'s answer so the server can check it.'], 422);
+            }
+        }
+
         $score = $this->scoring->puzzleScore(
-            (bool) $data['solved'],
+            $solved,
             (int) $data['attempts'],
             (int) $data['hintsUsed']
         );
@@ -99,7 +121,8 @@ class SessionApiController extends Controller
             ['game_session_id' => $session->id, 'puzzle_id' => $data['puzzleId']],
             [
                 'concept_tag' => $data['conceptTag'],
-                'solved' => (bool) $data['solved'],
+                'solved' => $solved,
+                'verified' => $verified,
                 'attempts' => $data['attempts'],
                 'time_seconds' => $data['timeSeconds'],
                 'hints_used' => $data['hintsUsed'],
@@ -108,9 +131,15 @@ class SessionApiController extends Controller
             ]
         );
 
+        SessionEvent::record($session, 'answer_checked', $data['puzzleId'], [
+            'solved' => $solved, 'verified' => $verified, 'attempts' => (int) $data['attempts'], 'score' => $score,
+        ]);
+
         return response()->json([
             'puzzleId' => $data['puzzleId'],
             'score' => $score,
+            'solved' => $solved,
+            'verified' => $verified,
         ], 201);
     }
 
@@ -125,6 +154,8 @@ class SessionApiController extends Controller
         if ($session->status !== 'in_progress') {
             return response()->json(['message' => 'Session is not in progress.'], 409);
         }
+
+        SessionEvent::record($session, 'session_ended', null, ['reason' => $data['reason']]);
 
         $results = PuzzleResult::where('game_session_id', $session->id)->get()->keyBy('puzzle_id');
 

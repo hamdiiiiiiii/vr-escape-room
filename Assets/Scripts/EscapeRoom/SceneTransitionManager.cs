@@ -41,8 +41,12 @@ public class SceneTransitionManager : MonoBehaviour
 
     IEnumerator LoadRoutine(string sceneName)
     {
-        yield return Fade(0f, 1f, fadeSeconds);
+        // start loading right away, in the background, while the screen fades out
         AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        op.allowSceneActivation = false;
+        yield return Fade(0f, 1f, fadeSeconds);
+        while (op.progress < 0.9f) yield return null;   // normally already there
+        op.allowSceneActivation = true;
         while (!op.isDone) yield return null;
     }
 

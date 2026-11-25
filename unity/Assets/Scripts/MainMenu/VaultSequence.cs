@@ -29,6 +29,10 @@ public class VaultSequence : MonoBehaviour
     public Renderer fadeQuad;                // black quad parented to the headset camera
     public Vector3 rigEndPosition = new Vector3(0f, 0f, 1.0f);
 
+    [Header("Hallway (set by 'The Last Protocol > 6 - Build Hallway')")]
+    public HallwayExit hallwayExit;          // when set: the door opens onto a hallway you walk down yourself
+    public GameObject locomotion;            // walking / turning, switched on once the door is open
+
     [Header("Sound")]
     public AudioSource audioSource;
     public AudioClip grantedClip;            // short beep when the sequence starts
@@ -54,6 +58,7 @@ public class VaultSequence : MonoBehaviour
     Quaternion camStartRot;
     float camStartFov;
     bool running;
+    AsyncOperation preload;                  // next scene loads in the background while the door opens
     Vector3 rigStart;
     float fadeAlpha;
     MaterialPropertyBlock fadeBlock;
@@ -87,7 +92,7 @@ public class VaultSequence : MonoBehaviour
         {
             rigStart = rigRoot.position;
             CharacterController cc = rigRoot.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;      // so the rig can be moved by script
+            if (cc != null && hallwayExit == null) cc.enabled = false;      // so the rig can be moved by script
         }
 
         MenuManager.Instance.HideMenu(0.5f);
@@ -98,14 +103,24 @@ public class VaultSequence : MonoBehaviour
         yield return new WaitForSeconds(0.4f);
 
         Play(lockClip, 1f);
-        StartCoroutine(PushIn(spinSeconds + swingSeconds));
+        if (hallwayExit == null) StartPreload();
+        if (hallwayExit == null) StartCoroutine(PushIn(spinSeconds + swingSeconds));
         yield return Spin(spinSeconds);
 
         Play(doorClip, 1f);
+        if (hallwayExit != null) hallwayExit.Reveal();
         SetStatus("ACCESS GRANTED", new Color(0.3f, 0.9f, 0.5f));
-        if (behindGlow != null) behindGlow.SetActive(true);
+        if (behindGlow != null && hallwayExit == null) behindGlow.SetActive(true);
         if (behindLight != null) behindLight.SetActive(true);
         yield return Swing(swingSeconds);
+
+        if (hallwayExit != null)
+        {
+            // hallway mode: the player is free. The hallway script loads the next scene when they reach its end.
+            if (locomotion != null) locomotion.SetActive(true);
+            hallwayExit.Arm();
+            yield break;
+        }
 
         yield return FadeTo(1f, fadeSeconds);
         yield return LoadScene();
@@ -222,11 +237,20 @@ public class VaultSequence : MonoBehaviour
             ResetDoor();
             MenuManager.Instance.RestoreMenu();
             running = false;
+            preload = null;
             yield break;
         }
 
-        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
-        while (!op.isDone) yield return null;
+        if (preload == null) StartPreload();
+        preload.allowSceneActivation = true;      // already loaded, so this is almost instant
+        while (!preload.isDone) yield return null;
+    }
+
+    void StartPreload()
+    {
+        if (preload != null || !Application.CanStreamedLevelBeLoaded(sceneName)) return;
+        preload = SceneManager.LoadSceneAsync(sceneName);
+        preload.allowSceneActivation = false;     // hold at 90% until the fade to black is done
     }
 
     void ResetDoor()
